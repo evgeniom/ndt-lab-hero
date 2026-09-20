@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Line, Pie, PieChart,
   ResponsiveContainer, Tooltip as ChartTooltip, XAxis, YAxis,
@@ -10,6 +10,7 @@ import {
   FlaskConical, Gauge, Menu, Moon, Plus, Search, Settings, ShieldCheck, Sun,
   Users, Wrench, X,
 } from "lucide-react";
+import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -60,14 +61,11 @@ const nav = [
 ] as const;
 
 function Dashboard() {
-  const [dark, setDark] = useState(false);
-  const [collapsed, setCollapsed] = useState(false);
   const [selectedDay, setSelectedDay] = useState(20);
   const [view, setView] = useState<"month" | "week">("month");
   const [tasks, setTasks] = useState(seedTasks);
   const [newTask, setNewTask] = useState("");
   const [detail, setDetail] = useState<Task | null>(null);
-  useEffect(() => { document.documentElement.classList.toggle("dark", dark); }, [dark]);
   const selectedTasks = tasks.filter((task) => task.day === selectedDay);
   const days = useMemo(() => view === "month" ? Array.from({ length: 35 }, (_, i) => i < 2 ? null : i - 1) : [20,21,22,23,24,25,26], [view]);
   const addTask = () => {
@@ -77,34 +75,9 @@ function Dashboard() {
   };
 
   return (
-    <div className="flex h-screen min-w-[1120px] overflow-hidden bg-background text-foreground">
-      <aside className={`${collapsed ? "w-[68px]" : "w-[244px]"} flex shrink-0 flex-col border-r border-sidebar-border bg-sidebar transition-[width] duration-200`}>
-        <div className="flex h-16 items-center gap-3 border-b border-sidebar-border px-4">
-          <div className="grid size-9 shrink-0 place-items-center rounded-sm bg-primary text-primary-foreground"><FlaskConical className="size-5" /></div>
-          {!collapsed && <div><div className="text-sm font-bold tracking-wide">NDT CONTROL</div><div className="text-[10px] text-muted-foreground">ЛАБОРАТОРИЯ НК · ЛНК-017</div></div>}
-        </div>
-        <nav className="flex-1 space-y-1 p-2">
-          <div className={`${collapsed ? "hidden" : "block"} px-2 pb-2 pt-3 text-[10px] font-semibold uppercase text-muted-foreground`}>Рабочее пространство</div>
-          {nav.map(([Icon, label, sub], index) => <button key={label} title={collapsed ? label : undefined} className={`group flex h-12 w-full items-center gap-3 rounded-sm px-3 text-left transition-colors ${index === 0 ? "bg-sidebar-primary text-sidebar-primary-foreground" : "text-sidebar-foreground hover:bg-sidebar-accent"}`}>
-            <Icon className="size-[18px] shrink-0" />{!collapsed && <span className="min-w-0"><span className="block truncate text-xs font-semibold">{label}</span><span className={`block truncate text-[10px] ${index === 0 ? "opacity-70" : "text-muted-foreground"}`}>{sub}</span></span>}
-          </button>)}
-        </nav>
-        <div className="border-t border-sidebar-border p-3">
-          <div className="mb-3 flex items-center gap-2"><div className="grid size-8 shrink-0 place-items-center rounded-full bg-accent text-xs font-bold">АК</div>{!collapsed && <div className="min-w-0"><div className="truncate text-xs font-semibold">Алексей Крылов</div><div className="text-[10px] text-muted-foreground">Руководитель ЛНК</div></div>}</div>
-          <Button variant="ghost" size="sm" onClick={() => setCollapsed(!collapsed)} className="w-full justify-center"><Menu className="size-4" />{!collapsed && "Свернуть"}</Button>
-        </div>
-      </aside>
+    <AppShell active="Дашборд" breadcrumb="Дашборд">
+      <>
 
-      <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-16 shrink-0 items-center gap-4 border-b bg-card px-5">
-          <div className="text-xs text-muted-foreground">Лаборатория НК <span className="px-1">/</span> <strong className="text-foreground">Дашборд</strong></div>
-          <div className="relative ml-auto w-[320px]"><Search className="absolute left-3 top-2.5 size-4 text-muted-foreground" /><input className="h-9 w-full rounded-sm border bg-background pl-9 pr-3 text-xs outline-none focus:ring-2 focus:ring-ring" placeholder="Поиск по протоколу, объекту, прибору…" /></div>
-          <div className="flex items-center rounded-sm border bg-background p-0.5"><Button variant={!dark ? "secondary" : "ghost"} size="icon" onClick={() => setDark(false)} className="size-7" title="Светлая тема"><Sun className="size-3.5" /></Button><Button variant={dark ? "secondary" : "ghost"} size="icon" onClick={() => setDark(true)} className="size-7" title="Тёмная тема"><Moon className="size-3.5" /></Button></div>
-          <Button variant="ghost" size="icon" className="relative size-9"><Bell className="size-4" /><span className="absolute right-1.5 top-1.5 size-1.5 rounded-full bg-destructive" /></Button>
-        </header>
-
-        <main className="flex-1 overflow-auto bg-muted/30 p-5">
-          <div className="mx-auto max-w-[1720px]">
             <div className="mb-4 flex items-end justify-between"><div><h1 className="text-xl font-bold">Дашборд лаборатории</h1><p className="mt-0.5 text-xs text-muted-foreground">Оперативная сводка · 20 сентября 2026 · смена 1</p></div><div className="flex gap-2">{([{icon:Plus,label:"Новое испытание"},{icon:Gauge,label:"Внести замер"},{icon:FileCheck2,label:"Сформировать протокол"},{icon:Wrench,label:"Журнал калибровок"}]).map(({icon:Icon,label},i)=><Button key={label} variant={i===0?"default":"outline"} size="sm" className="h-8 text-xs"><Icon className="size-3.5" />{label}</Button>)}</div></div>
 
             <section className="mb-4 grid grid-cols-4 gap-3">
@@ -141,13 +114,10 @@ function Dashboard() {
                 <div className="mt-3 flex gap-2 border-t pt-3"><input value={newTask} onChange={e=>setNewTask(e.target.value)} onKeyDown={e=>e.key==="Enter"&&addTask()} className="h-8 min-w-0 flex-1 rounded-sm border bg-background px-2 text-[11px] outline-none focus:ring-2 focus:ring-ring" placeholder="Добавить задачу…"/><Button size="sm" className="h-8" onClick={addTask}><Plus className="size-3.5" />Добавить</Button></div>
               </Panel>
             </section>
-          </div>
-        </main>
-        <footer className="flex h-7 shrink-0 items-center gap-5 border-t bg-card px-4 text-[9px] text-muted-foreground"><span className="flex items-center gap-1.5"><span className="size-1.5 rounded-full bg-success"/>Система работает штатно</span><span>Последняя синхронизация: 22:15</span><span>ISO/IEC 17025:2017</span><span className="ml-auto">БД: подключено · v2.8.4</span></footer>
-      </div>
-
+      </>
       <Dialog open={!!detail} onOpenChange={(open)=>!open&&setDetail(null)}><DialogContent className="max-w-lg rounded-sm"><DialogHeader><DialogTitle className="flex items-center gap-2 text-base"><ClipboardCheck className="size-5 text-primary"/>Карточка задачи</DialogTitle></DialogHeader>{detail&&<div className="space-y-4"><div className="border-l-2 border-primary pl-3"><div className="text-sm font-semibold">{detail.title}</div><div className="mt-1 text-xs text-muted-foreground">{detail.meta}</div></div><div className="grid grid-cols-2 gap-3 text-xs"><Detail label="Дата и время" value={`${detail.day} сентября · ${detail.time}`}/><Detail label="Приоритет" value={detail.priority}/><Detail label="Ответственный" value="А. Крылов"/><Detail label="Статус" value={detail.done?"Выполнено":"К выполнению"}/></div><div className="rounded-sm border bg-muted/30 p-3 text-[11px] leading-relaxed text-muted-foreground">Связанные документы: методика УЗК-07, журнал оборудования №12, форма записи ЛНК-Ф-14.</div><div className="flex justify-end gap-2"><Button variant="outline" size="sm" onClick={()=>setDetail(null)}>Закрыть</Button><Button size="sm" onClick={()=>{setTasks(c=>c.map(t=>t.id===detail.id?{...t,done:true}:t));setDetail(null)}}><Check className="size-4"/>Отметить выполненной</Button></div></div>}</DialogContent></Dialog>
-    </div>
+    </AppShell>
+
   );
 }
 
