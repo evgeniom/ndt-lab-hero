@@ -105,7 +105,7 @@ function Dashboard() {
 
         <main className="flex-1 overflow-auto bg-muted/30 p-5">
           <div className="mx-auto max-w-[1720px]">
-            <div className="mb-4 flex items-end justify-between"><div><h1 className="text-xl font-bold">Дашборд лаборатории</h1><p className="mt-0.5 text-xs text-muted-foreground">Оперативная сводка · 20 сентября 2026 · смена 1</p></div><div className="flex gap-2">{[[Plus,"Новое испытание"],[Gauge,"Внести замер"],[FileCheck2,"Сформировать протокол"],[Wrench,"Журнал калибровок"]].map(([Icon,label],i)=><Button key={label as string} variant={i===0?"default":"outline"} size="sm" className="h-8 text-xs"><Icon className="size-3.5" />{label as string}</Button>)}</div></div>
+            <div className="mb-4 flex items-end justify-between"><div><h1 className="text-xl font-bold">Дашборд лаборатории</h1><p className="mt-0.5 text-xs text-muted-foreground">Оперативная сводка · 20 сентября 2026 · смена 1</p></div><div className="flex gap-2">{([{icon:Plus,label:"Новое испытание"},{icon:Gauge,label:"Внести замер"},{icon:FileCheck2,label:"Сформировать протокол"},{icon:Wrench,label:"Журнал калибровок"}]).map(({icon:Icon,label},i)=><Button key={label} variant={i===0?"default":"outline"} size="sm" className="h-8 text-xs"><Icon className="size-3.5" />{label}</Button>)}</div></div>
 
             <section className="mb-4 grid grid-cols-4 gap-3">
               <Stat icon={Activity} label="Активные испытания" value="24" note="6 выездных · 18 в лаборатории" tone="info" />
