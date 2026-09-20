@@ -116,13 +116,10 @@ function Dashboard() {
                 <div className="mt-3 flex gap-2 border-t pt-3"><input value={newTask} onChange={e=>setNewTask(e.target.value)} onKeyDown={e=>e.key==="Enter"&&addTask()} className="h-8 min-w-0 flex-1 rounded-sm border bg-background px-2 text-[11px] outline-none focus:ring-2 focus:ring-ring" placeholder="Добавить задачу…"/><Button size="sm" className="h-8" onClick={addTask}><Plus className="size-3.5" />Добавить</Button></div>
               </Panel>
             </section>
-          </div>
-        </main>
-        <footer className="flex h-7 shrink-0 items-center gap-5 border-t bg-card px-4 text-[9px] text-muted-foreground"><span className="flex items-center gap-1.5"><span className="size-1.5 rounded-full bg-success"/>Система работает штатно</span><span>Последняя синхронизация: 22:15</span><span>ISO/IEC 17025:2017</span><span className="ml-auto">БД: подключено · v2.8.4</span></footer>
-      </div>
-
+      </>
       <Dialog open={!!detail} onOpenChange={(open)=>!open&&setDetail(null)}><DialogContent className="max-w-lg rounded-sm"><DialogHeader><DialogTitle className="flex items-center gap-2 text-base"><ClipboardCheck className="size-5 text-primary"/>Карточка задачи</DialogTitle></DialogHeader>{detail&&<div className="space-y-4"><div className="border-l-2 border-primary pl-3"><div className="text-sm font-semibold">{detail.title}</div><div className="mt-1 text-xs text-muted-foreground">{detail.meta}</div></div><div className="grid grid-cols-2 gap-3 text-xs"><Detail label="Дата и время" value={`${detail.day} сентября · ${detail.time}`}/><Detail label="Приоритет" value={detail.priority}/><Detail label="Ответственный" value="А. Крылов"/><Detail label="Статус" value={detail.done?"Выполнено":"К выполнению"}/></div><div className="rounded-sm border bg-muted/30 p-3 text-[11px] leading-relaxed text-muted-foreground">Связанные документы: методика УЗК-07, журнал оборудования №12, форма записи ЛНК-Ф-14.</div><div className="flex justify-end gap-2"><Button variant="outline" size="sm" onClick={()=>setDetail(null)}>Закрыть</Button><Button size="sm" onClick={()=>{setTasks(c=>c.map(t=>t.id===detail.id?{...t,done:true}:t));setDetail(null)}}><Check className="size-4"/>Отметить выполненной</Button></div></div>}</DialogContent></Dialog>
-    </div>
+    </AppShell>
+
   );
 }
 
