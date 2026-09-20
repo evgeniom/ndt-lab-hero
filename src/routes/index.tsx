@@ -10,6 +10,7 @@ import {
   FlaskConical, Gauge, Menu, Moon, Plus, Search, Settings, ShieldCheck, Sun,
   Users, Wrench, X,
 } from "lucide-react";
+import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -60,14 +61,11 @@ const nav = [
 ] as const;
 
 function Dashboard() {
-  const [dark, setDark] = useState(false);
-  const [collapsed, setCollapsed] = useState(false);
   const [selectedDay, setSelectedDay] = useState(20);
   const [view, setView] = useState<"month" | "week">("month");
   const [tasks, setTasks] = useState(seedTasks);
   const [newTask, setNewTask] = useState("");
   const [detail, setDetail] = useState<Task | null>(null);
-  useEffect(() => { document.documentElement.classList.toggle("dark", dark); }, [dark]);
   const selectedTasks = tasks.filter((task) => task.day === selectedDay);
   const days = useMemo(() => view === "month" ? Array.from({ length: 35 }, (_, i) => i < 2 ? null : i - 1) : [20,21,22,23,24,25,26], [view]);
   const addTask = () => {
