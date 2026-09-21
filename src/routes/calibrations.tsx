@@ -85,11 +85,10 @@ const seed: Entry[] = equipment.flatMap((it, ei) =>
   }),
 );
 
-const resultTone: Record<Entry["result"], string> = {
-  "Годен": "bg-green/15 text-green",
-  "Не годен": "bg-red/15 text-red",
-  "В работе": "bg-blue/15 text-blue",
-};
+const toneOf = (r: string) =>
+  r === "Годен" ? "bg-green/15 text-green"
+  : r.startsWith("Не годен") || r.startsWith("Изъят") ? "bg-red/15 text-red"
+  : "bg-blue/15 text-blue";
 
 const methods = ["Все методы", "ВИК", "УЗК", "РК", "МПК", "ПВК", "Образцы и калибры"];
 const results = ["Все результаты", "Годен", "Не годен", "В работе"];
@@ -227,7 +226,7 @@ function CalibrationsPage() {
                 <td className="px-3 py-2">{e.performer}</td>
                 <td className="whitespace-nowrap px-3 py-2">{ru(e.nextDate)}</td>
                 <td className="px-3 py-2"><span className="inline-flex items-center gap-1 text-muted-foreground"><Paperclip className="size-3" />{e.attachments.length}</span></td>
-                <td className="px-3 py-2"><span className={`rounded-sm px-2 py-0.5 text-[10px] font-semibold ${resultTone[e.result]}`}>{e.result}</span></td>
+                <td className="px-3 py-2"><span className={`rounded-sm px-2 py-0.5 text-[10px] font-semibold ${toneOf(e.result)}`}>{e.result}</span></td>
               </tr>
             ))}
             {rows.length === 0 && <tr><td colSpan={10} className="px-3 py-10 text-center text-muted-foreground">Записи не найдены — измените фильтры</td></tr>}
@@ -242,7 +241,7 @@ function CalibrationsPage() {
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2 text-sm">
                   Запись журнала · {detail.cert}
-                  <span className={`rounded-sm px-2 py-0.5 text-[10px] font-semibold ${resultTone[detail.result]}`}>{detail.result}</span>
+                  <span className={`rounded-sm px-2 py-0.5 text-[10px] font-semibold ${toneOf(detail.result)}`}>{detail.result}</span>
                 </DialogTitle>
               </DialogHeader>
               <div className="grid grid-cols-2 gap-x-6 gap-y-1.5 rounded-sm border bg-muted/40 p-3 text-xs">
