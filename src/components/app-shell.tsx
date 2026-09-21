@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
 import {
-  BarChart3, Bell, ClipboardList, FlaskConical, Menu, Moon, Search,
+  BarChart3, Bell, ClipboardList, FlaskConical, History, Menu, Moon, Search,
   ShieldCheck, Sun, Users, Wrench,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
