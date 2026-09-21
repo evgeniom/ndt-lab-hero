@@ -51,7 +51,7 @@ const typeIntervalDays = 365;
 const seed: Entry[] = equipment.flatMap((it, ei) =>
   it.history.map((h, hi) => {
     const certFile = `${h.cert.replace(/\//g, "_")}.pdf`;
-    const performer = performers[(ei + hi) % performers.length];
+    const performer = performers[(ei + hi) % performers.length] as string;
     const nextDate = new Date(new Date(h.date).getTime() + typeIntervalDays * day).toISOString().slice(0, 10);
     return {
       id: `${it.id}-h${hi}`,
@@ -310,13 +310,13 @@ function CalibrationsPage() {
 }
 
 function AddDialog({ open, onClose, onSave }: { open: boolean; onClose: () => void; onSave: (f: any) => void }) {
-  const [equipId, setEquipId] = useState(equipment[0].id);
+  const [equipId, setEquipId] = useState(equipment[0]!.id);
   const [type, setType] = useState("Периодическая поверка");
   const [cert, setCert] = useState("");
   const [org, setOrg] = useState("ФБУ «Ростест-Москва»");
   const [result, setResult] = useState<Entry["result"]>("Годен");
   const [date, setDate] = useState(TODAY.toISOString().slice(0, 10));
-  const [performer, setPerformer] = useState(performers[1]);
+  const [performer, setPerformer] = useState(performers[1] as string);
   const [note, setNote] = useState("");
 
   return (

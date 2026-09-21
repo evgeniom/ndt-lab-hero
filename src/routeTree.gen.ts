@@ -10,11 +10,17 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CalibrationsRouteImport } from './routes/calibrations'
 import { Route as EquipmentRouteImport } from './routes/equipment'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CalibrationsRoute = CalibrationsRouteImport.update({
+  id: '/calibrations',
+  path: '/calibrations',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EquipmentRoute = EquipmentRouteImport.update({
@@ -25,27 +31,31 @@ const EquipmentRoute = EquipmentRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/calibrations': typeof CalibrationsRoute
   '/equipment': typeof EquipmentRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/calibrations': typeof CalibrationsRoute
   '/equipment': typeof EquipmentRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/calibrations': typeof CalibrationsRoute
   '/equipment': typeof EquipmentRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/equipment'
+  fullPaths: '/' | '/calibrations' | '/equipment'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/equipment'
-  id: '__root__' | '/' | '/equipment'
+  to: '/' | '/calibrations' | '/equipment'
+  id: '__root__' | '/' | '/calibrations' | '/equipment'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CalibrationsRoute: typeof CalibrationsRoute
   EquipmentRoute: typeof EquipmentRoute
 }
 
@@ -56,6 +66,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/calibrations': {
+      id: '/calibrations'
+      path: '/calibrations'
+      fullPath: '/calibrations'
+      preLoaderRoute: typeof CalibrationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/equipment': {
@@ -70,6 +87,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CalibrationsRoute: CalibrationsRoute,
   EquipmentRoute: EquipmentRoute,
 }
 export const routeTree = rootRouteImport
