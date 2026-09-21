@@ -22,9 +22,9 @@ export const Route = createFileRoute("/equipment")({
   component: EquipmentPage,
 });
 
-const TODAY = new Date("2026-09-20T00:00:00Z");
+export const TODAY = new Date("2026-09-20T00:00:00Z");
 
-type Item = {
+export type Item = {
   id: string;
   name: string;
   model: string;
@@ -42,12 +42,12 @@ type Item = {
   history: { date: string; type: string; cert: string; org: string; result: string }[];
 };
 
-const day = 86400000;
+export const day = 86400000;
 const iso = (d: Date) => d.toISOString().slice(0, 10);
-const ru = (s: string) => s.split("-").reverse().join(".");
-const shift = (days: number) => iso(new Date(TODAY.getTime() + days * day));
+export const ru = (s: string) => s.split("-").reverse().join(".");
+export const shift = (days: number) => iso(new Date(TODAY.getTime() + days * day));
 
-const data: Item[] = [
+export const data: Item[] = [
   {
     id: "e1", name: "Дефектоскоп ультразвуковой", model: "USN 60 (GE)", method: "УЗК",
     serial: "40673", inv: "ЛНК-УЗК-014", owner: "Соколов Д.М. (ведущий дефектоскопист)",
