@@ -91,7 +91,7 @@ const toneOf = (r: string) =>
   : "bg-blue/15 text-blue";
 
 const methods = ["Все методы", "ВИК", "УЗК", "РК", "МПК", "ПВК", "Образцы и калибры"];
-const results = ["Все результаты", "Годен", "Не годен", "В работе"];
+const results = ["Все результаты", ...Array.from(new Set(seed.map((e) => e.result)))];
 const periods = ["За всё время", "За 30 дней", "За 90 дней", "За год"];
 const periodDays: Record<string, number> = { "За 30 дней": 30, "За 90 дней": 90, "За год": 365 };
 
