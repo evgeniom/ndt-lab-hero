@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 
 const nav = [
   { to: "/", icon: BarChart3, label: "Дашборд", sub: "Обзор лаборатории" },
-  { to: "/", icon: ClipboardList, label: "Журнал испытаний", sub: "Реестр протоколов" },
+  { to: "/tests", icon: ClipboardList, label: "Журнал испытаний", sub: "Реестр протоколов" },
   { to: "/equipment", icon: Wrench, label: "Оборудование и поверки", sub: "Метрологический парк" },
   { to: "/calibrations", icon: History, label: "Журнал поверок", sub: "История и сертификаты" },
   { to: "/", icon: Users, label: "Специалисты и аттестация", sub: "Допуски и уровни" },

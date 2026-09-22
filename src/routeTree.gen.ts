@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CalibrationsRouteImport } from './routes/calibrations'
 import { Route as EquipmentRouteImport } from './routes/equipment'
+import { Route as TestsRouteImport } from './routes/tests'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -28,35 +29,44 @@ const EquipmentRoute = EquipmentRouteImport.update({
   path: '/equipment',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TestsRoute = TestsRouteImport.update({
+  id: '/tests',
+  path: '/tests',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/calibrations': typeof CalibrationsRoute
   '/equipment': typeof EquipmentRoute
+  '/tests': typeof TestsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/calibrations': typeof CalibrationsRoute
   '/equipment': typeof EquipmentRoute
+  '/tests': typeof TestsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/calibrations': typeof CalibrationsRoute
   '/equipment': typeof EquipmentRoute
+  '/tests': typeof TestsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/calibrations' | '/equipment'
+  fullPaths: '/' | '/calibrations' | '/equipment' | '/tests'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/calibrations' | '/equipment'
-  id: '__root__' | '/' | '/calibrations' | '/equipment'
+  to: '/' | '/calibrations' | '/equipment' | '/tests'
+  id: '__root__' | '/' | '/calibrations' | '/equipment' | '/tests'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CalibrationsRoute: typeof CalibrationsRoute
   EquipmentRoute: typeof EquipmentRoute
+  TestsRoute: typeof TestsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -82,6 +92,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EquipmentRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/tests': {
+      id: '/tests'
+      path: '/tests'
+      fullPath: '/tests'
+      preLoaderRoute: typeof TestsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -89,6 +106,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CalibrationsRoute: CalibrationsRoute,
   EquipmentRoute: EquipmentRoute,
+  TestsRoute: TestsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
