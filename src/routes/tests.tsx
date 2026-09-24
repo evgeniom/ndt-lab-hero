@@ -244,6 +244,12 @@ function TestsPage() {
   const [creating, setCreating] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const { user, can, denyMessage } = useAccess();
+  const isOwn = (t: Test) => user.role === "head" || t.operator.startsWith(user.name);
+  const mayEdit = (t: Test) => can("tests.edit") && t.status !== "Утверждён" && isOwn(t);
+  const editHint = (t: Test) =>
+    !can("tests.edit") ? denyMessage("tests.edit")
+      : t.status === "Утверждён" ? "Протокол утверждён — редактирование записи запрещено (ISO/IEC 17025 п. 7.5.2)"
+        : `Испытание закреплено за специалистом ${t.operator} — редактирование недоступно`;
 
   const flash = (m: string) => { setToast(m); setTimeout(() => setToast(null), 2600); };
   const detail = tests.find((t) => t.id === detailId) ?? null;
