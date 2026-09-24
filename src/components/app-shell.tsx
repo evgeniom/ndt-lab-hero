@@ -26,6 +26,7 @@ export function AppShell({
   searchPlaceholder?: string;
   children: ReactNode;
 }) {
+  const { people, user, setUserId } = useAccess();
   const [dark, setDark] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   useEffect(() => { document.documentElement.classList.toggle("dark", dark); }, [dark]);
