@@ -242,6 +242,7 @@ function TestsPage() {
   const [editing, setEditing] = useState<Test | null>(null);
   const [creating, setCreating] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const { user, can, denyMessage } = useAccess();
 
   const flash = (m: string) => { setToast(m); setTimeout(() => setToast(null), 2600); };
   const detail = tests.find((t) => t.id === detailId) ?? null;
@@ -373,8 +374,11 @@ function TestsPage() {
           </p>
         </div>
         <div className="ml-auto flex gap-2">
-          <Button size="sm" className="h-8 text-xs" onClick={() => setCreating(true)}><Plus className="size-3.5" />Новое испытание</Button>
-          <Button size="sm" variant="outline" className="h-8 text-xs" onClick={exportCsv}><Download className="size-3.5" />Экспорт журнала</Button>
+          <span className="mr-1 self-center rounded-sm bg-muted px-2 py-1 text-[10px] font-semibold text-muted-foreground">{user.name} · {ROLE_TITLE[user.role]}</span>
+          {can("tests.create")
+            ? <Button size="sm" className="h-8 text-xs" onClick={() => setCreating(true)}><Plus className="size-3.5" />Новое испытание</Button>
+            : <Button size="sm" className="h-8 text-xs" disabled title={denyMessage("tests.create")}><Plus className="size-3.5" />Новое испытание</Button>}
+          {can("docs.export") && <Button size="sm" variant="outline" className="h-8 text-xs" onClick={exportCsv}><Download className="size-3.5" />Экспорт журнала</Button>}
         </div>
       </div>
 
