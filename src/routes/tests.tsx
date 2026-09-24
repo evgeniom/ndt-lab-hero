@@ -490,7 +490,7 @@ function TestsPage() {
                 </div>
               </div>
 
-              <DefectPanel test={detail} onAdd={(d) => addDefect(detail.id, d)} onDel={(did) => delDefect(detail.id, did)} />
+              <DefectPanel test={detail} canEdit={mayEdit(detail)} onAdd={(d) => addDefect(detail.id, d)} onDel={(did) => delDefect(detail.id, did)} />
 
               <div className="rounded-sm border p-3">
                 <div className="mb-2 flex items-center gap-2 text-[10px] font-semibold uppercase text-muted-foreground"><History className="size-3" />История изменений</div>
@@ -541,7 +541,7 @@ function TestsPage() {
 
 /* ---------------- defects ---------------- */
 
-function DefectPanel({ test, onAdd, onDel }: { test: Test; onAdd: (d: Omit<Defect, "id">) => void; onDel: (id: string) => void }) {
+function DefectPanel({ test, canEdit, onAdd, onDel }: { test: Test; canEdit: boolean; onAdd: (d: Omit<Defect, "id">) => void; onDel: (id: string) => void }) {
   const [kind, setKind] = useState(DEFECT_KINDS[0]!);
   const [size, setSize] = useState("");
   const [coord, setCoord] = useState("");
@@ -562,7 +562,7 @@ function DefectPanel({ test, onAdd, onDel }: { test: Test; onAdd: (d: Omit<Defec
               <td className="px-2 py-1.5">{d.size}</td>
               <td className="px-2 py-1.5 text-muted-foreground">{d.coord}</td>
               <td className="px-2 py-1.5"><span className={`rounded-sm px-1.5 py-0.5 text-[10px] font-semibold ${d.grade === "Недопустимый" ? "bg-red/15 text-red" : "bg-yellow/20 text-yellow"}`}>{d.grade}</span></td>
-              <td className="px-2 py-1.5"><Button size="icon" variant="ghost" className="size-6" title="Удалить" onClick={() => onDel(d.id)}><Trash2 className="size-3" /></Button></td>
+              <td className="px-2 py-1.5">{canEdit && <Button size="icon" variant="ghost" className="size-6" title="Удалить" onClick={() => onDel(d.id)}><Trash2 className="size-3" /></Button>}</td>
             </tr>
           ))}
           {test.defects.length === 0 && <tr><td colSpan={6} className="px-2 py-3 text-muted-foreground">Недопустимых несплошностей не обнаружено</td></tr>}
