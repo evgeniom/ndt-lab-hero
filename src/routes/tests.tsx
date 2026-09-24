@@ -569,6 +569,9 @@ function DefectPanel({ test, canEdit, onAdd, onDel }: { test: Test; canEdit: boo
         </tbody>
       </table>
 
+      {!canEdit ? (
+        <div className="mt-3 border-t pt-3 text-[11px] text-muted-foreground">Дефектная ведомость доступна только для просмотра в вашей роли.</div>
+      ) : (
       <div className="mt-3 flex flex-wrap items-end gap-2 border-t pt-3">
         <label className="space-y-1"><span className="block text-[10px] font-semibold uppercase text-muted-foreground">Тип</span>
           <select value={kind} onChange={(e) => setKind(e.target.value)} className="h-8 w-[170px] rounded-sm border bg-background px-2 text-xs outline-none focus:ring-2 focus:ring-ring">
