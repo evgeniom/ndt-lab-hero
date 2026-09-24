@@ -5,12 +5,13 @@ import {
   ShieldCheck, Sun, Users, Wrench,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ROLE_TITLE, useAccess } from "@/lib/roles";
 
 const nav = [
   { to: "/", icon: BarChart3, label: "Дашборд", sub: "Обзор лаборатории" },
   { to: "/tests", icon: ClipboardList, label: "Журнал испытаний", sub: "Реестр протоколов" },
   { to: "/equipment", icon: Wrench, label: "Оборудование и поверки", sub: "Метрологический парк" },
-  { to: "/", icon: Users, label: "Специалисты и аттестация", sub: "Допуски и уровни" },
+  { to: "/access", icon: Users, label: "Специалисты и аттестация", sub: "Роли и права доступа" },
   { to: "/", icon: ShieldCheck, label: "Качество и аудит ISO 17025", sub: "СМК и несоответствия" },
 ] as const;
 
@@ -49,7 +50,15 @@ export function AppShell({
           })}
         </nav>
         <div className="border-t border-sidebar-border p-3">
-          <div className="mb-3 flex items-center gap-2"><div className="grid size-8 shrink-0 place-items-center rounded-full bg-accent text-xs font-bold">АК</div>{!collapsed && <div className="min-w-0"><div className="truncate text-xs font-semibold">Алексей Крылов</div><div className="text-[10px] text-muted-foreground">Руководитель ЛНК</div></div>}</div>
+          <div className="mb-2 flex items-center gap-2"><div className="grid size-8 shrink-0 place-items-center rounded-full bg-accent text-xs font-bold">{user.initials}</div>{!collapsed && <div className="min-w-0"><div className="truncate text-xs font-semibold">{user.name}</div><div className="text-[10px] text-muted-foreground">{ROLE_TITLE[user.role]}</div></div>}</div>
+          {!collapsed && (
+            <label className="mb-3 block space-y-1">
+              <span className="block text-[9px] font-semibold uppercase text-muted-foreground">Вход в систему как</span>
+              <select value={user.id} onChange={(e) => setUserId(e.target.value)} className="h-8 w-full rounded-sm border bg-background px-2 text-[11px] outline-none focus:ring-2 focus:ring-ring">
+                {people.map((p) => <option key={p.id} value={p.id}>{p.name} — {ROLE_TITLE[p.role]}</option>)}
+              </select>
+            </label>
+          )}
           <Button variant="ghost" size="sm" onClick={() => setCollapsed(!collapsed)} className="w-full justify-center"><Menu className="size-4" />{!collapsed && "Свернуть"}</Button>
         </div>
       </aside>
