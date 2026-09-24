@@ -594,6 +594,7 @@ function DefectPanel({ test, canEdit, onAdd, onDel }: { test: Test; canEdit: boo
           setSize(""); setCoord("");
         }}><Plus className="size-3.5" />Добавить дефект</Button>
       </div>
+      )}
     </div>
   );
 }
