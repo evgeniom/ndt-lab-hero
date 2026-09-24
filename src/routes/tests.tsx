@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
+import { ROLE_TITLE, useAccess } from "@/lib/roles";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ru, shift, TODAY, day } from "@/routes/equipment";
 
