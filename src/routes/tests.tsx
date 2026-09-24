@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
+import { ROLE_TITLE, useAccess } from "@/lib/roles";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ru, shift, TODAY, day } from "@/routes/equipment";
 
@@ -242,6 +243,13 @@ function TestsPage() {
   const [editing, setEditing] = useState<Test | null>(null);
   const [creating, setCreating] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const { user, can, denyMessage } = useAccess();
+  const isOwn = (t: Test) => user.role === "head" || t.operator.startsWith(user.name);
+  const mayEdit = (t: Test) => can("tests.edit") && t.status !== "Утверждён" && isOwn(t);
+  const editHint = (t: Test) =>
+    !can("tests.edit") ? denyMessage("tests.edit")
+      : t.status === "Утверждён" ? "Протокол утверждён — редактирование записи запрещено (ISO/IEC 17025 п. 7.5.2)"
+        : `Испытание закреплено за специалистом ${t.operator} — редактирование недоступно`;
 
   const flash = (m: string) => { setToast(m); setTimeout(() => setToast(null), 2600); };
   const detail = tests.find((t) => t.id === detailId) ?? null;
@@ -373,8 +381,11 @@ function TestsPage() {
           </p>
         </div>
         <div className="ml-auto flex gap-2">
-          <Button size="sm" className="h-8 text-xs" onClick={() => setCreating(true)}><Plus className="size-3.5" />Новое испытание</Button>
-          <Button size="sm" variant="outline" className="h-8 text-xs" onClick={exportCsv}><Download className="size-3.5" />Экспорт журнала</Button>
+          <span className="mr-1 self-center rounded-sm bg-muted px-2 py-1 text-[10px] font-semibold text-muted-foreground">{user.name} · {ROLE_TITLE[user.role]}</span>
+          {can("tests.create")
+            ? <Button size="sm" className="h-8 text-xs" onClick={() => setCreating(true)}><Plus className="size-3.5" />Новое испытание</Button>
+            : <Button size="sm" className="h-8 text-xs" disabled title={denyMessage("tests.create")}><Plus className="size-3.5" />Новое испытание</Button>}
+          {can("docs.export") && <Button size="sm" variant="outline" className="h-8 text-xs" onClick={exportCsv}><Download className="size-3.5" />Экспорт журнала</Button>}
         </div>
       </div>
 
@@ -438,7 +449,7 @@ function TestsPage() {
                 <td className="px-3 py-2"><span className={`rounded-sm px-2 py-0.5 text-[10px] font-semibold ${verdict(t) === "Брак" ? "bg-red/15 text-red" : "bg-green/15 text-green"}`}>{verdict(t)}</span></td>
                 <td className="px-3 py-2"><span className={`whitespace-nowrap rounded-sm px-2 py-0.5 text-[10px] font-semibold ${statusTone[t.status]}`}>{t.status}</span></td>
                 <td className="px-2 py-2">
-                  <Button size="icon" variant="ghost" className="size-7" title="Редактировать" onClick={(e) => { e.stopPropagation(); setEditing(t); }}><Pencil className="size-3.5" /></Button>
+                  <Button size="icon" variant="ghost" className="size-7" disabled={!mayEdit(t)} title={mayEdit(t) ? "Редактировать" : editHint(t)} onClick={(e) => { e.stopPropagation(); setEditing(t); }}><Pencil className="size-3.5" /></Button>
                 </td>
               </tr>
             ))}
@@ -479,7 +490,7 @@ function TestsPage() {
                 </div>
               </div>
 
-              <DefectPanel test={detail} onAdd={(d) => addDefect(detail.id, d)} onDel={(did) => delDefect(detail.id, did)} />
+              <DefectPanel test={detail} canEdit={mayEdit(detail)} onAdd={(d) => addDefect(detail.id, d)} onDel={(did) => delDefect(detail.id, did)} />
 
               <div className="rounded-sm border p-3">
                 <div className="mb-2 flex items-center gap-2 text-[10px] font-semibold uppercase text-muted-foreground"><History className="size-3" />История изменений</div>
@@ -493,16 +504,22 @@ function TestsPage() {
                 </ol>
               </div>
 
+              {!mayEdit(detail) && (
+                <div className="rounded-sm border border-yellow/40 bg-yellow/15 px-3 py-2 text-[11px]">
+                  {editHint(detail)}
+                </div>
+              )}
+
               <div className="flex flex-wrap justify-end gap-2">
-                <Button size="sm" variant="outline" className="h-8 text-xs text-red hover:text-red" onClick={() => removeTest(detail.id)}><Trash2 className="size-3.5" />Удалить</Button>
-                <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => setEditing(detail)}><Pencil className="size-3.5" />Редактировать</Button>
-                {detail.status === "Черновик" && <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => setStatusOf(detail.id, "В работе", "Испытание взято в работу")}><Send className="size-3.5" />Взять в работу</Button>}
-                {(detail.status === "В работе" || detail.status === "Отклонён") && <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => setStatusOf(detail.id, "На утверждении", "Протокол передан на утверждение")}><Send className="size-3.5" />На утверждение</Button>}
-                {detail.status === "На утверждении" && <>
+                {can("tests.delete") && <Button size="sm" variant="outline" className="h-8 text-xs text-red hover:text-red" onClick={() => removeTest(detail.id)}><Trash2 className="size-3.5" />Удалить</Button>}
+                {mayEdit(detail) && <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => setEditing(detail)}><Pencil className="size-3.5" />Редактировать</Button>}
+                {mayEdit(detail) && detail.status === "Черновик" && <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => setStatusOf(detail.id, "В работе", "Испытание взято в работу")}><Send className="size-3.5" />Взять в работу</Button>}
+                {can("tests.submit") && mayEdit(detail) && (detail.status === "В работе" || detail.status === "Отклонён") && <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => setStatusOf(detail.id, "На утверждении", "Протокол передан на утверждение")}><Send className="size-3.5" />На утверждение</Button>}
+                {detail.status === "На утверждении" && (can("tests.approve") ? <>
                   <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => setStatusOf(detail.id, "Отклонён", "Протокол отклонён, возвращён на доработку")}><Undo2 className="size-3.5" />Отклонить</Button>
                   <Button size="sm" className="h-8 text-xs" onClick={() => setStatusOf(detail.id, "Утверждён", "Протокол утверждён")}><CheckCircle2 className="size-3.5" />Утвердить</Button>
-                </>}
-                <Button size="sm" className="h-8 text-xs" onClick={() => printProtocol(detail)}><FileText className="size-3.5" />Сформировать протокол</Button>
+                </> : <span className="self-center text-[11px] text-muted-foreground">Утверждение протокола — только руководитель ЛНК</span>)}
+                {can("docs.export") && <Button size="sm" className="h-8 text-xs" onClick={() => printProtocol(detail)}><FileText className="size-3.5" />Сформировать протокол</Button>}
               </div>
             </>
           )}
@@ -524,7 +541,7 @@ function TestsPage() {
 
 /* ---------------- defects ---------------- */
 
-function DefectPanel({ test, onAdd, onDel }: { test: Test; onAdd: (d: Omit<Defect, "id">) => void; onDel: (id: string) => void }) {
+function DefectPanel({ test, canEdit, onAdd, onDel }: { test: Test; canEdit: boolean; onAdd: (d: Omit<Defect, "id">) => void; onDel: (id: string) => void }) {
   const [kind, setKind] = useState(DEFECT_KINDS[0]!);
   const [size, setSize] = useState("");
   const [coord, setCoord] = useState("");
@@ -545,13 +562,16 @@ function DefectPanel({ test, onAdd, onDel }: { test: Test; onAdd: (d: Omit<Defec
               <td className="px-2 py-1.5">{d.size}</td>
               <td className="px-2 py-1.5 text-muted-foreground">{d.coord}</td>
               <td className="px-2 py-1.5"><span className={`rounded-sm px-1.5 py-0.5 text-[10px] font-semibold ${d.grade === "Недопустимый" ? "bg-red/15 text-red" : "bg-yellow/20 text-yellow"}`}>{d.grade}</span></td>
-              <td className="px-2 py-1.5"><Button size="icon" variant="ghost" className="size-6" title="Удалить" onClick={() => onDel(d.id)}><Trash2 className="size-3" /></Button></td>
+              <td className="px-2 py-1.5">{canEdit && <Button size="icon" variant="ghost" className="size-6" title="Удалить" onClick={() => onDel(d.id)}><Trash2 className="size-3" /></Button>}</td>
             </tr>
           ))}
           {test.defects.length === 0 && <tr><td colSpan={6} className="px-2 py-3 text-muted-foreground">Недопустимых несплошностей не обнаружено</td></tr>}
         </tbody>
       </table>
 
+      {!canEdit ? (
+        <div className="mt-3 border-t pt-3 text-[11px] text-muted-foreground">Дефектная ведомость доступна только для просмотра в вашей роли.</div>
+      ) : (
       <div className="mt-3 flex flex-wrap items-end gap-2 border-t pt-3">
         <label className="space-y-1"><span className="block text-[10px] font-semibold uppercase text-muted-foreground">Тип</span>
           <select value={kind} onChange={(e) => setKind(e.target.value)} className="h-8 w-[170px] rounded-sm border bg-background px-2 text-xs outline-none focus:ring-2 focus:ring-ring">
@@ -574,6 +594,7 @@ function DefectPanel({ test, onAdd, onDel }: { test: Test; onAdd: (d: Omit<Defec
           setSize(""); setCoord("");
         }}><Plus className="size-3.5" />Добавить дефект</Button>
       </div>
+      )}
     </div>
   );
 }
