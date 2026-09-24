@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
+import { ROLE_TITLE, useAccess } from "@/lib/roles";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/equipment")({
@@ -229,6 +230,7 @@ function EquipmentPage() {
   const [query, setQuery] = useState("");
   const [detail, setDetail] = useState<Item | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const { user, can } = useAccess();
 
   const counts = useMemo(() => ({
     overdue: data.filter((i) => statusOf(i) === "overdue").length,
@@ -262,10 +264,13 @@ function EquipmentPage() {
           <p className="mt-0.5 text-xs text-muted-foreground">Метрологический парк ЛНК-017 · {data.length} ед. · актуально на 20.09.2026 · ISO/IEC 17025:2017, п. 6.4</p>
         </div>
         <div className="flex gap-2">
-          <Button size="sm" className="h-8 text-xs" onClick={() => fire("Форма «Добавить оборудование» откроется в карточке паспорта (демо-данные)")}><Plus className="size-3.5" />Добавить оборудование</Button>
-          <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => fire("Регистрация поверки: выберите прибор в таблице и внесите свидетельство")}><ClipboardCheck className="size-3.5" />Зарегистрировать поверку</Button>
-          <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => fire(`Экспорт в Excel: ${rows.length} записей выгружено (демо)`)}><FileSpreadsheet className="size-3.5" />Excel</Button>
-          <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => fire(`Экспорт в PDF: ${rows.length} записей выгружено (демо)`)}><FileText className="size-3.5" />PDF</Button>
+          <span className="mr-1 self-center rounded-sm bg-muted px-2 py-1 text-[10px] font-semibold text-muted-foreground">{user.name} · {ROLE_TITLE[user.role]}</span>
+          {can("equipment.manage") && <Button size="sm" className="h-8 text-xs" onClick={() => fire("Форма «Добавить оборудование» откроется в карточке паспорта (демо-данные)")}><Plus className="size-3.5" />Добавить оборудование</Button>}
+          {can("equipment.calibrate") && <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => fire("Регистрация поверки: выберите прибор в таблице и внесите свидетельство")}><ClipboardCheck className="size-3.5" />Зарегистрировать поверку</Button>}
+          {can("docs.export") && <>
+            <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => fire(`Экспорт в Excel: ${rows.length} записей выгружено (демо)`)}><FileSpreadsheet className="size-3.5" />Excel</Button>
+            <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => fire(`Экспорт в PDF: ${rows.length} записей выгружено (демо)`)}><FileText className="size-3.5" />PDF</Button>
+          </>}
         </div>
       </div>
 
@@ -403,8 +408,10 @@ function EquipmentPage() {
 
               <div className="flex justify-end gap-2">
                 <Button variant="outline" size="sm" onClick={() => setDetail(null)}>Закрыть</Button>
-                <Button variant="outline" size="sm" onClick={() => fire(`Паспорт ${detail.inv} выгружен в PDF (демо)`)}><Download className="size-4" />Выгрузить паспорт</Button>
-                <Button size="sm" onClick={() => { fire(`Поверка для ${detail.inv} зарегистрирована в журнале (демо)`); setDetail(null); }}><ClipboardCheck className="size-4" />Зарегистрировать поверку</Button>
+                {can("docs.export") && <Button variant="outline" size="sm" onClick={() => fire(`Паспорт ${detail.inv} выгружен в PDF (демо)`)}><Download className="size-4" />Выгрузить паспорт</Button>}
+                {can("equipment.calibrate")
+                  ? <Button size="sm" onClick={() => { fire(`Поверка для ${detail.inv} зарегистрирована в журнале (демо)`); setDetail(null); }}><ClipboardCheck className="size-4" />Зарегистрировать поверку</Button>
+                  : <span className="self-center text-[11px] text-muted-foreground">Регистрация поверок недоступна для роли «{ROLE_TITLE[user.role]}»</span>}
               </div>
             </div>
           )}
