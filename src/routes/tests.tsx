@@ -443,7 +443,7 @@ function TestsPage() {
                 <td className="px-3 py-2"><span className={`rounded-sm px-2 py-0.5 text-[10px] font-semibold ${verdict(t) === "Брак" ? "bg-red/15 text-red" : "bg-green/15 text-green"}`}>{verdict(t)}</span></td>
                 <td className="px-3 py-2"><span className={`whitespace-nowrap rounded-sm px-2 py-0.5 text-[10px] font-semibold ${statusTone[t.status]}`}>{t.status}</span></td>
                 <td className="px-2 py-2">
-                  <Button size="icon" variant="ghost" className="size-7" title="Редактировать" onClick={(e) => { e.stopPropagation(); setEditing(t); }}><Pencil className="size-3.5" /></Button>
+                  <Button size="icon" variant="ghost" className="size-7" disabled={!mayEdit(t)} title={mayEdit(t) ? "Редактировать" : editHint(t)} onClick={(e) => { e.stopPropagation(); setEditing(t); }}><Pencil className="size-3.5" /></Button>
                 </td>
               </tr>
             ))}
@@ -498,16 +498,22 @@ function TestsPage() {
                 </ol>
               </div>
 
+              {!mayEdit(detail) && (
+                <div className="rounded-sm border border-yellow/40 bg-yellow/15 px-3 py-2 text-[11px]">
+                  {editHint(detail)}
+                </div>
+              )}
+
               <div className="flex flex-wrap justify-end gap-2">
-                <Button size="sm" variant="outline" className="h-8 text-xs text-red hover:text-red" onClick={() => removeTest(detail.id)}><Trash2 className="size-3.5" />Удалить</Button>
-                <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => setEditing(detail)}><Pencil className="size-3.5" />Редактировать</Button>
-                {detail.status === "Черновик" && <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => setStatusOf(detail.id, "В работе", "Испытание взято в работу")}><Send className="size-3.5" />Взять в работу</Button>}
-                {(detail.status === "В работе" || detail.status === "Отклонён") && <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => setStatusOf(detail.id, "На утверждении", "Протокол передан на утверждение")}><Send className="size-3.5" />На утверждение</Button>}
-                {detail.status === "На утверждении" && <>
+                {can("tests.delete") && <Button size="sm" variant="outline" className="h-8 text-xs text-red hover:text-red" onClick={() => removeTest(detail.id)}><Trash2 className="size-3.5" />Удалить</Button>}
+                {mayEdit(detail) && <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => setEditing(detail)}><Pencil className="size-3.5" />Редактировать</Button>}
+                {mayEdit(detail) && detail.status === "Черновик" && <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => setStatusOf(detail.id, "В работе", "Испытание взято в работу")}><Send className="size-3.5" />Взять в работу</Button>}
+                {can("tests.submit") && mayEdit(detail) && (detail.status === "В работе" || detail.status === "Отклонён") && <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => setStatusOf(detail.id, "На утверждении", "Протокол передан на утверждение")}><Send className="size-3.5" />На утверждение</Button>}
+                {detail.status === "На утверждении" && (can("tests.approve") ? <>
                   <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => setStatusOf(detail.id, "Отклонён", "Протокол отклонён, возвращён на доработку")}><Undo2 className="size-3.5" />Отклонить</Button>
                   <Button size="sm" className="h-8 text-xs" onClick={() => setStatusOf(detail.id, "Утверждён", "Протокол утверждён")}><CheckCircle2 className="size-3.5" />Утвердить</Button>
-                </>}
-                <Button size="sm" className="h-8 text-xs" onClick={() => printProtocol(detail)}><FileText className="size-3.5" />Сформировать протокол</Button>
+                </> : <span className="self-center text-[11px] text-muted-foreground">Утверждение протокола — только руководитель ЛНК</span>)}
+                {can("docs.export") && <Button size="sm" className="h-8 text-xs" onClick={() => printProtocol(detail)}><FileText className="size-3.5" />Сформировать протокол</Button>}
               </div>
             </>
           )}
