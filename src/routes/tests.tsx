@@ -244,6 +244,7 @@ function TestsPage() {
   const [creating, setCreating] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const { user, can, denyMessage } = useAccess();
+  const actor = `${user.name} (${ROLE_TITLE[user.role]})`;
   const isOwn = (t: Test) => user.role === "head" || t.operator.startsWith(user.name);
   const mayEdit = (t: Test) => can("tests.edit") && t.status !== "Утверждён" && isOwn(t);
   const editHint = (t: Test) =>
@@ -286,7 +287,7 @@ function TestsPage() {
     setTests((p) => p.map((t) => t.id === id ? { ...t, changes: [...t.changes, { at: stamp(), who, what }] } : t));
 
   const setStatusOf = (id: string, s: Status, note: string) => {
-    setTests((p) => p.map((t) => t.id === id ? { ...t, status: s, changes: [...t.changes, { at: stamp(), who: "Алексей Крылов (руководитель ЛНК)", what: note }] } : t));
+    setTests((p) => p.map((t) => t.id === id ? { ...t, status: s, changes: [...t.changes, { at: stamp(), who: actor, what: note }] } : t));
     flash(note);
   };
 
@@ -308,7 +309,7 @@ function TestsPage() {
     setTests((p) => p.map((t) => t.id === id ? {
       ...t,
       defects: [...t.defects, { ...d, id: `d-${Date.now()}` }],
-      changes: [...t.changes, { at: stamp(), who: t.operator, what: `Добавлен дефект: ${d.kind} (${d.grade.toLowerCase()})` }],
+      changes: [...t.changes, { at: stamp(), who: actor, what: `Добавлен дефект: ${d.kind} (${d.grade.toLowerCase()})` }],
     } : t));
     flash("Дефект добавлен в ведомость");
   };
@@ -317,7 +318,7 @@ function TestsPage() {
     setTests((p) => p.map((t) => t.id === id ? {
       ...t,
       defects: t.defects.filter((d) => d.id !== did),
-      changes: [...t.changes, { at: stamp(), who: t.operator, what: "Удалена запись дефектной ведомости" }],
+      changes: [...t.changes, { at: stamp(), who: actor, what: "Удалена запись дефектной ведомости" }],
     } : t));
   };
 
