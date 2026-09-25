@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AccessRouteImport } from './routes/access'
 import { Route as EquipmentRouteImport } from './routes/equipment'
+import { Route as QualityRouteImport } from './routes/quality'
 import { Route as TestsRouteImport } from './routes/tests'
 
 const IndexRoute = IndexRouteImport.update({
@@ -29,6 +30,11 @@ const EquipmentRoute = EquipmentRouteImport.update({
   path: '/equipment',
   getParentRoute: () => rootRouteImport,
 } as any)
+const QualityRoute = QualityRouteImport.update({
+  id: '/quality',
+  path: '/quality',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TestsRoute = TestsRouteImport.update({
   id: '/tests',
   path: '/tests',
@@ -39,12 +45,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/access': typeof AccessRoute
   '/equipment': typeof EquipmentRoute
+  '/quality': typeof QualityRoute
   '/tests': typeof TestsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/access': typeof AccessRoute
   '/equipment': typeof EquipmentRoute
+  '/quality': typeof QualityRoute
   '/tests': typeof TestsRoute
 }
 export interface FileRoutesById {
@@ -52,20 +60,22 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/access': typeof AccessRoute
   '/equipment': typeof EquipmentRoute
+  '/quality': typeof QualityRoute
   '/tests': typeof TestsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/access' | '/equipment' | '/tests'
+  fullPaths: '/' | '/access' | '/equipment' | '/quality' | '/tests'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/access' | '/equipment' | '/tests'
-  id: '__root__' | '/' | '/access' | '/equipment' | '/tests'
+  to: '/' | '/access' | '/equipment' | '/quality' | '/tests'
+  id: '__root__' | '/' | '/access' | '/equipment' | '/quality' | '/tests'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AccessRoute: typeof AccessRoute
   EquipmentRoute: typeof EquipmentRoute
+  QualityRoute: typeof QualityRoute
   TestsRoute: typeof TestsRoute
 }
 
@@ -92,6 +102,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EquipmentRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/quality': {
+      id: '/quality'
+      path: '/quality'
+      fullPath: '/quality'
+      preLoaderRoute: typeof QualityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/tests': {
       id: '/tests'
       path: '/tests'
@@ -106,6 +123,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccessRoute: AccessRoute,
   EquipmentRoute: EquipmentRoute,
+  QualityRoute: QualityRoute,
   TestsRoute: TestsRoute,
 }
 export const routeTree = rootRouteImport

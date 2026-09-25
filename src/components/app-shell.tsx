@@ -12,7 +12,7 @@ const nav = [
   { to: "/tests", icon: ClipboardList, label: "Журнал испытаний", sub: "Реестр протоколов" },
   { to: "/equipment", icon: Wrench, label: "Оборудование и поверки", sub: "Метрологический парк" },
   { to: "/access", icon: Users, label: "Специалисты и аттестация", sub: "Роли и права доступа" },
-  { to: "/", icon: ShieldCheck, label: "Качество и аудит ISO 17025", sub: "СМК и несоответствия" },
+  { to: "/quality", icon: ShieldCheck, label: "Качество и аудит ISO 17025", sub: "СМК и несоответствия" },
 ] as const;
 
 export function AppShell({
