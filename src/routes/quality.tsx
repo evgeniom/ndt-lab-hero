@@ -43,10 +43,10 @@ const SEED = {
     { id: "a5", title: "Внутренний аудит: ВИК, МПК, ПВК", kind: "Внутренний", scope: "Условия окружающей среды, материалы", clauses: "6.3, 6.6, 7.4", date: plus(75), lead: "Кузнецова И.В.", status: "Запланирован", findings: 0 },
   ] as Audit[],
   ncs: [
-    { id: "n1", num: "НС-14/26", title: "Использование дефектоскопа USN 60 с истёкшей поверкой", clause: "6.4.6", severity: "Значительное", source: "Внутренний аудит", owner: "Соколов Д.М.", due: plus(5), status: "Выполнение CAPA", cause: "Отсутствие автоматического контроля сроков поверки", action: "Прибор изъят, внедрён контроль сроков в реестре оборудования", log: [{ at: ru(new Date(plus(-60))), who: "Кузнецова И.В.", what: "Зарегистрировано по итогам аудита" }] },
-    { id: "n2", num: "НС-15/26", title: "Не указана неопределённость в протоколе РК", clause: "7.8.3", severity: "Малозначительное", source: "Внутренний аудит", owner: "Гончаров В.И.", due: plus(-3), status: "Анализ причин", cause: "", action: "", log: [{ at: ru(new Date(plus(-58))), who: "Кузнецова И.В.", what: "Зарегистрировано" }] },
-    { id: "n3", num: "НС-16/26", title: "Просрочена аттестация специалиста ПВК II уровня", clause: "6.2.5", severity: "Значительное", source: "Мониторинг персонала", owner: "Алексей Крылов", due: plus(20), status: "Открыто", cause: "", action: "", log: [{ at: ru(new Date(plus(-10))), who: "Алексей Крылов", what: "Зарегистрировано" }] },
-    { id: "n4", num: "НС-12/26", title: "Отсутствует запись температуры в помещении РК", clause: "6.3.3", severity: "Замечание", source: "Жалоба заказчика", owner: "Петрова Е.С.", due: plus(-30), status: "Закрыто", cause: "Неисправный термогигрометр", action: "Замена прибора, журнал условий", log: [{ at: ru(new Date(plus(-90))), who: "Кузнецова И.В.", what: "Зарегистрировано" }, { at: ru(new Date(plus(-30))), who: "Алексей Крылов", what: "Закрыто, результативность подтверждена" }] },
+    { id: "n1", num: "НС-14/26", title: "Использование дефектоскопа USN 60 с истёкшей поверкой", clause: "6.4.6", severity: "Значительное", source: "Внутренний аудит", owner: "Соколов Д.М.", due: plus(5), status: "Выполнение CAPA", cause: "Отсутствие автоматического контроля сроков поверки", action: "Прибор изъят, внедрён контроль сроков в реестре оборудования", log: [{ at: ru(plus(-60)), who: "Кузнецова И.В.", what: "Зарегистрировано по итогам аудита" }] },
+    { id: "n2", num: "НС-15/26", title: "Не указана неопределённость в протоколе РК", clause: "7.8.3", severity: "Малозначительное", source: "Внутренний аудит", owner: "Гончаров В.И.", due: plus(-3), status: "Анализ причин", cause: "", action: "", log: [{ at: ru(plus(-58)), who: "Кузнецова И.В.", what: "Зарегистрировано" }] },
+    { id: "n3", num: "НС-16/26", title: "Просрочена аттестация специалиста ПВК II уровня", clause: "6.2.5", severity: "Значительное", source: "Мониторинг персонала", owner: "Алексей Крылов", due: plus(20), status: "Открыто", cause: "", action: "", log: [{ at: ru(plus(-10)), who: "Алексей Крылов", what: "Зарегистрировано" }] },
+    { id: "n4", num: "НС-12/26", title: "Отсутствует запись температуры в помещении РК", clause: "6.3.3", severity: "Замечание", source: "Жалоба заказчика", owner: "Петрова Е.С.", due: plus(-30), status: "Закрыто", cause: "Неисправный термогигрометр", action: "Замена прибора, журнал условий", log: [{ at: ru(plus(-90)), who: "Кузнецова И.В.", what: "Зарегистрировано" }, { at: ru(plus(-30)), who: "Алексей Крылов", what: "Закрыто, результативность подтверждена" }] },
   ] as Nc[],
   docs: [
     { id: "d1", code: "РК-ЛНК-01", title: "Руководство по качеству лаборатории", version: "5.0", approved: plus(-300), review: plus(65), owner: "Алексей Крылов" },
@@ -87,7 +87,7 @@ function QualityPage() {
   useEffect(() => { try { const r = localStorage.getItem(KEY); if (r) setS(JSON.parse(r)); } catch { /* */ } }, []);
   const save = (fn: (p: State) => State) => setS((p) => { const n = fn(p); try { localStorage.setItem(KEY, JSON.stringify(n)); } catch { /* */ } return n; });
   const notify = (t: string) => { setToast(t); setTimeout(() => setToast(null), 2500); };
-  const stamp = () => ru(new Date());
+  const stamp = () => ru(iso(new Date()));
 
   const readiness = Math.round((s.reqs.filter((r) => r.ok).length / s.reqs.length) * 100);
   const openNcs = s.ncs.filter((n) => n.status !== "Закрыто");
@@ -97,7 +97,7 @@ function QualityPage() {
 
   const exportCsv = () => {
     const rows = [["№", "Несоответствие", "Пункт", "Категория", "Источник", "Ответственный", "Срок", "Статус", "Причина", "Действие"],
-      ...s.ncs.map((n) => [n.num, n.title, n.clause, n.severity, n.source, n.owner, ru(new Date(n.due)), n.status, n.cause, n.action])];
+      ...s.ncs.map((n) => [n.num, n.title, n.clause, n.severity, n.source, n.owner, ru(n.due), n.status, n.cause, n.action])];
     const csv = "\uFEFF" + rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(";")).join("\n");
     const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" })); a.download = `capa-register-${iso(new Date())}.csv`; a.click();
     notify("Реестр несоответствий выгружен");
@@ -169,7 +169,7 @@ function QualityPage() {
                 {[...s.audits].sort((a, b) => a.date.localeCompare(b.date)).map((a) => (
                   <tr key={a.id} className="border-t">
                     <td className="px-3 py-2 font-medium">{a.title}</td><td className="px-3 py-2">{a.kind}</td><td className="px-3 py-2 text-muted-foreground">{a.scope}</td>
-                    <td className="px-3 py-2 tabular-nums">{a.clauses}</td><td className="px-3 py-2 tabular-nums">{ru(new Date(a.date))}</td><td className="px-3 py-2">{a.lead}</td>
+                    <td className="px-3 py-2 tabular-nums">{a.clauses}</td><td className="px-3 py-2 tabular-nums">{ru(a.date)}</td><td className="px-3 py-2">{a.lead}</td>
                     <td className="px-3 py-2 tabular-nums">{a.findings}</td><td className="px-3 py-2"><Pill c={auditTone[a.status]}>{a.status}</Pill></td>
                     <td className="px-3 py-2 text-right">
                       {manage && a.status !== "Завершён" && (
@@ -203,7 +203,7 @@ function QualityPage() {
                       <tr key={n.id} onClick={() => setOpenNc(n.id)} className="cursor-pointer border-t hover:bg-muted/40">
                         <td className="px-3 py-2 font-mono">{n.num}</td><td className="px-3 py-2 font-medium">{n.title}</td><td className="px-3 py-2">{n.clause}</td>
                         <td className="px-3 py-2"><Pill c={sevTone[n.severity]}>{n.severity}</Pill></td><td className="px-3 py-2">{n.source}</td><td className="px-3 py-2">{n.owner}</td>
-                        <td className={`px-3 py-2 tabular-nums ${late ? "font-medium text-red" : ""}`}>{ru(new Date(n.due))}{late && ` (−${-daysTo(n.due)} дн.)`}</td>
+                        <td className={`px-3 py-2 tabular-nums ${late ? "font-medium text-red" : ""}`}>{ru(n.due)}{late && ` (−${-daysTo(n.due)} дн.)`}</td>
                         <td className="px-3 py-2"><Pill c={n.status === "Закрыто" ? "bg-green/15 text-green" : "bg-yellow/20 text-yellow"}>{n.status}</Pill></td>
                       </tr>
                     );
@@ -222,8 +222,8 @@ function QualityPage() {
                   return (
                     <tr key={d.id} className="border-t">
                       <td className="px-3 py-2 font-mono">{d.code}</td><td className="px-3 py-2 font-medium">{d.title}</td><td className="px-3 py-2 tabular-nums">{d.version}</td>
-                      <td className="px-3 py-2 tabular-nums">{ru(new Date(d.approved))}</td>
-                      <td className="px-3 py-2"><Pill c={left < 0 ? "bg-red/15 text-red" : left < 30 ? "bg-yellow/20 text-yellow" : "bg-green/15 text-green"}>{ru(new Date(d.review))} · {left < 0 ? `просрочен ${-left} дн.` : `${left} дн.`}</Pill></td>
+                      <td className="px-3 py-2 tabular-nums">{ru(d.approved)}</td>
+                      <td className="px-3 py-2"><Pill c={left < 0 ? "bg-red/15 text-red" : left < 30 ? "bg-yellow/20 text-yellow" : "bg-green/15 text-green"}>{ru(d.review)} · {left < 0 ? `просрочен ${-left} дн.` : `${left} дн.`}</Pill></td>
                       <td className="px-3 py-2">{d.owner}</td>
                       <td className="px-3 py-2 text-right">
                         <Button size="sm" variant="outline" className="h-6 text-[11px]" disabled={user.role !== "head"} onClick={() => { save((p) => ({ ...p, docs: p.docs.map((x) => x.id === d.id ? { ...x, version: `${Math.floor(parseFloat(x.version)) + 1}.0`, approved: iso(TODAY), review: plus(365) } : x) })); notify(`${d.code}: утверждена новая редакция`); }}>Пересмотреть</Button>
@@ -270,7 +270,7 @@ function QualityPage() {
                 <div className="grid grid-cols-3 gap-2 text-xs">
                   <div><div className="text-muted-foreground">Пункт стандарта</div>п. {nc.clause}</div>
                   <div><div className="text-muted-foreground">Ответственный</div>{nc.owner}</div>
-                  <div><div className="text-muted-foreground">Срок</div>{ru(new Date(nc.due))}</div>
+                  <div><div className="text-muted-foreground">Срок</div>{ru(nc.due)}</div>
                 </div>
                 <label className="text-xs">Анализ коренной причины
                   <textarea className="mt-1 w-full rounded-sm border bg-background p-2 text-xs" rows={2} disabled={!mayWork || nc.status === "Закрыто"} value={nc.cause} onChange={(e) => upd({ cause: e.target.value })} />
@@ -299,11 +299,11 @@ function QualityPage() {
 
       <FormDialog open={newAudit} onClose={() => setNewAudit(false)} title="Запланировать аудит"
         fields={[["title", "Наименование", "Внутренний аудит: "], ["scope", "Область", ""], ["clauses", "Пункты ISO/IEC 17025", "7.2, 7.8"], ["date", "Дата", plus(30), "date"], ["lead", "Руководитель аудита", "Кузнецова И.В."]]}
-        onSubmit={(v) => { save((p) => ({ ...p, audits: [...p.audits, { id: `a${Date.now()}`, title: v.title!, scope: v.scope!, clauses: v.clauses!, date: v.date!, lead: v.lead!, kind: "Внутренний", status: "Запланирован", findings: 0 }] })); notify("Аудит добавлен в программу"); }} />
+        onSubmit={(v) => { save((p) => ({ ...p, audits: [...p.audits, { id: `a${Date.now()}`, title: v["title"]!, scope: v["scope"]!, clauses: v["clauses"]!, date: v["date"]!, lead: v["lead"]!, kind: "Внутренний", status: "Запланирован", findings: 0 }] })); notify("Аудит добавлен в программу"); }} />
 
       <FormDialog open={newNc} onClose={() => setNewNc(false)} title="Регистрация несоответствия"
         fields={[["title", "Описание", ""], ["clause", "Пункт стандарта", "7.8"], ["severity", "Категория", "Малозначительное", ["Значительное", "Малозначительное", "Замечание"]], ["source", "Источник", "Внутренний аудит"], ["owner", "Ответственный", "Соколов Д.М."], ["due", "Срок устранения", plus(30), "date"]]}
-        onSubmit={(v) => { save((p) => ({ ...p, ncs: [{ id: `n${Date.now()}`, num: `НС-${17 + p.ncs.length - 4}/26`, title: v.title!, clause: v.clause!, severity: v.severity as Nc["severity"], source: v.source!, owner: v.owner!, due: v.due!, status: "Открыто", cause: "", action: "", log: [{ at: stamp(), who: user.name, what: "Зарегистрировано" }] }, ...p.ncs] })); setTab("ncs"); notify("Несоответствие зарегистрировано"); }} />
+        onSubmit={(v) => { save((p) => ({ ...p, ncs: [{ id: `n${Date.now()}`, num: `НС-${17 + p.ncs.length - 4}/26`, title: v["title"]!, clause: v["clause"]!, severity: v["severity"] as Nc["severity"], source: v["source"]!, owner: v["owner"]!, due: v["due"]!, status: "Открыто", cause: "", action: "", log: [{ at: stamp(), who: user.name, what: "Зарегистрировано" }] }, ...p.ncs] })); setTab("ncs"); notify("Несоответствие зарегистрировано"); }} />
 
       {toast && <div className="fixed bottom-10 right-6 z-50 rounded-sm border bg-popover px-4 py-2 text-xs text-popover-foreground shadow-panel">{toast}</div>}
     </AppShell>
