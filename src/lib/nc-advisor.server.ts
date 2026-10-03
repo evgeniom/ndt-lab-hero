@@ -20,7 +20,7 @@ const SYSTEM = `Вы — эксперт по системам менеджмен
 Пишите по-русски, кратко, со ссылками на ГОСТ/РД, если уместно.`;
 
 export async function adviseNc(description: string): Promise<NcAdvice> {
-  const apiKey = process.env.LOVABLE_API_KEY;
+  const apiKey = process.env['LOVABLE_API_KEY'];
   if (!apiKey) throw new Error("ИИ-помощник не настроен");
   const provider = createOpenAI({
     baseURL: "https://ai.gateway.lovable.dev/v1",
