@@ -4,7 +4,7 @@ import { Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { getNcAdvice } from "@/lib/nc-advisor.functions";
-import type { NcAdvice } from "@/lib/nc-advisor.server";
+type NcAdvice = Awaited<ReturnType<typeof getNcAdvice>>;
 
 export type AdvicePick = { title: string; clause: string; severity: string; cause: string; action: string };
 
