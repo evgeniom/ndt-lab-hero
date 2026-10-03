@@ -8,3 +8,4 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+- AI features call Lovable AI Gateway from server-only *.server.ts modules exposed via createServerFn in *.functions.ts; why: keeps the API key off the client.

@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { AlertTriangle, CheckCircle2, ClipboardCheck, Download, FileText, Plus, ShieldCheck, Trash2 } from "lucide-react";
+import { AlertTriangle, CheckCircle2, ClipboardCheck, Download, FileText, Plus, ShieldCheck, Sparkles, Trash2 } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
+import { NcAdvisor } from "@/components/nc-advisor";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -82,6 +83,7 @@ function QualityPage() {
   const [openNc, setOpenNc] = useState<string | null>(null);
   const [newAudit, setNewAudit] = useState(false);
   const [newNc, setNewNc] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false);
   const [ncFilter, setNcFilter] = useState("Все");
 
   useEffect(() => { try { const r = localStorage.getItem(KEY); if (r) setS(JSON.parse(r)); } catch { /* */ } }, []);
@@ -125,6 +127,7 @@ function QualityPage() {
             <p className="text-xs text-muted-foreground">Система менеджмента качества ЛНК-017 · вы вошли как {user.name}{manage ? "" : " (только просмотр и выполнение назначенных действий)"}</p>
           </div>
           <div className="flex gap-2">
+            <Button size="sm" variant="outline" disabled={!manage} onClick={() => setAiOpen(true)}><Sparkles className="mr-1 h-3.5 w-3.5" />ИИ-анализ</Button>
             <Button size="sm" variant="outline" disabled={!can("docs.export")} onClick={exportCsv}><Download className="mr-1 h-3.5 w-3.5" />Экспорт CAPA</Button>
             <Button size="sm" variant="outline" disabled={!manage} onClick={() => setNewNc(true)}><AlertTriangle className="mr-1 h-3.5 w-3.5" />Несоответствие</Button>
             <Button size="sm" disabled={!manage} onClick={() => setNewAudit(true)}><Plus className="mr-1 h-3.5 w-3.5" />Запланировать аудит</Button>
@@ -304,6 +307,8 @@ function QualityPage() {
       <FormDialog open={newNc} onClose={() => setNewNc(false)} title="Регистрация несоответствия"
         fields={[["title", "Описание", ""], ["clause", "Пункт стандарта", "7.8"], ["severity", "Категория", "Малозначительное", ["Значительное", "Малозначительное", "Замечание"]], ["source", "Источник", "Внутренний аудит"], ["owner", "Ответственный", "Соколов Д.М."], ["due", "Срок устранения", plus(30), "date"]]}
         onSubmit={(v) => { save((p) => ({ ...p, ncs: [{ id: `n${Date.now()}`, num: `НС-${17 + p.ncs.length - 4}/26`, title: v["title"]!, clause: v["clause"]!, severity: v["severity"] as Nc["severity"], source: v["source"]!, owner: v["owner"]!, due: v["due"]!, status: "Открыто", cause: "", action: "", log: [{ at: stamp(), who: user.name, what: "Зарегистрировано" }] }, ...p.ncs] })); setTab("ncs"); notify("Несоответствие зарегистрировано"); }} />
+      <NcAdvisor open={aiOpen} onClose={() => setAiOpen(false)} canRegister={manage}
+        onRegister={(a) => { save((p) => ({ ...p, ncs: [{ id: `n${Date.now()}`, num: `НС-${17 + p.ncs.length - 4}/26`, title: a.title, clause: a.clause, severity: a.severity as Nc["severity"], source: "ИИ-анализ", owner: user.name, due: plus(30), status: "Анализ причин", cause: a.cause, action: a.action, log: [{ at: stamp(), who: user.name, what: "Зарегистрировано по результатам ИИ-анализа" }] }, ...p.ncs] })); setAiOpen(false); setTab("ncs"); notify("Несоответствие зарегистрировано с предложениями ИИ"); }} />
 
       {toast && <div className="fixed bottom-10 right-6 z-50 rounded-sm border bg-popover px-4 py-2 text-xs text-popover-foreground shadow-panel">{toast}</div>}
     </AppShell>
