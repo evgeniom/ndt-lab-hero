@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
 import {
-  BarChart3, Bell, ClipboardList, FlaskConical, Menu, Moon, Search,
+  BarChart3, Bell, ClipboardList, FlaskConical, LogOut, Menu, Moon, Search,
   ShieldCheck, Sun, Users, Wrench,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -26,7 +26,8 @@ export function AppShell({
   searchPlaceholder?: string;
   children: ReactNode;
 }) {
-  const { people, user, setUserId } = useAccess();
+  const { people, user, signOut } = useAccess();
+  const online = people.filter((p) => p.online).length;
   const [dark, setDark] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   useEffect(() => { document.documentElement.classList.toggle("dark", dark); }, [dark]);
@@ -51,15 +52,12 @@ export function AppShell({
           })}
         </nav>
         <div className="border-t border-sidebar-border p-3">
-          <div className="mb-2 flex items-center gap-2"><div className="grid size-8 shrink-0 place-items-center rounded-full bg-accent text-xs font-bold">{user.initials}</div>{!collapsed && <div className="min-w-0"><div className="truncate text-xs font-semibold">{user.name}</div><div className="text-[10px] text-muted-foreground">{ROLE_TITLE[user.role]}</div></div>}</div>
-          {!collapsed && (
-            <label className="mb-3 block space-y-1">
-              <span className="block text-[9px] font-semibold uppercase text-muted-foreground">Вход в систему как</span>
-              <select value={user.id} onChange={(e) => setUserId(e.target.value)} className="h-8 w-full rounded-sm border bg-background px-2 text-[11px] outline-none focus:ring-2 focus:ring-ring">
-                {people.map((p) => <option key={p.id} value={p.id}>{p.name} — {ROLE_TITLE[p.role]}</option>)}
-              </select>
-            </label>
-          )}
+          <div className="mb-2 flex items-center gap-2">
+            <div className="relative grid size-8 shrink-0 place-items-center rounded-full bg-accent text-xs font-bold">{user.initials}<span className="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full border-2 border-sidebar bg-green" title="В сети" /></div>
+            {!collapsed && <div className="min-w-0"><div className="truncate text-xs font-semibold">{user.name}</div><div className="text-[10px] text-muted-foreground">{ROLE_TITLE[user.role]} · <span className="text-green">в сети</span></div></div>}
+          </div>
+          {!collapsed && <div className="mb-2 text-[10px] text-muted-foreground">Логин: <span className="font-mono">{user.login}</span> · {online} из {people.length} в сети</div>}
+          <Button variant="outline" size="sm" onClick={() => void signOut()} className="mb-2 w-full justify-center" title="Выйти"><LogOut className="size-4" />{!collapsed && "Выйти"}</Button>
           <Button variant="ghost" size="sm" onClick={() => setCollapsed(!collapsed)} className="w-full justify-center"><Menu className="size-4" />{!collapsed && "Свернуть"}</Button>
         </div>
       </aside>

@@ -1,4 +1,7 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
+import { FlaskConical, Loader2, LogIn } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { LOGIN_DOMAIN } from "@/lib/accounts.functions";
 
 export type Role = "head" | "specialist" | "auditor";
 
@@ -21,7 +24,7 @@ export const ROLE_TITLE: Record<Role, string> = {
 };
 
 export const ROLE_NOTE: Record<Role, string> = {
-  head: "Полный доступ: утверждение протоколов, метрологический парк, управление ролями",
+  head: "Полный доступ: утверждение протоколов, метрологический парк, управление ролями и учётными записями",
   specialist: "Ведение испытаний своего метода, передача протоколов на утверждение",
   auditor: "Только просмотр записей и выгрузка документов (ISO/IEC 17025 п. 8.8)",
 };
@@ -36,85 +39,159 @@ export const PERM_TITLE: Record<Perm, string> = {
   "equipment.calibrate": "Регистрация поверок и калибровок",
   "docs.view": "Просмотр документов и паспортов",
   "docs.export": "Выгрузка протоколов и реестров",
-  "roles.manage": "Управление ролями и правами",
+  "roles.manage": "Управление ролями, логинами и паролями",
 };
 
 export const PERMS: Perm[] = Object.keys(PERM_TITLE) as Perm[];
 
 export const ROLE_PERMS: Record<Role, Perm[]> = {
   head: [...PERMS],
-  specialist: [
-    "tests.create",
-    "tests.edit",
-    "tests.submit",
-    "docs.view",
-    "docs.export",
-    "equipment.calibrate",
-  ],
+  specialist: ["tests.create", "tests.edit", "tests.submit", "docs.view", "docs.export", "equipment.calibrate"],
   auditor: ["docs.view", "docs.export"],
 };
 
-export type Person = { id: string; name: string; position: string; role: Role; initials: string };
+export type Person = {
+  id: string; login: string; name: string; position: string; role: Role; initials: string;
+  lastSignIn: string | null; lastSeen: string | null; online: boolean;
+};
 
-export const PEOPLE: Person[] = [
-  { id: "u1", name: "Алексей Крылов", position: "Руководитель ЛНК", role: "head", initials: "АК" },
-  { id: "u2", name: "Соколов Д.М.", position: "Дефектоскопист УЗК, III ур.", role: "specialist", initials: "СД" },
-  { id: "u3", name: "Иванов А.П.", position: "Дефектоскопист УЗК, II ур.", role: "specialist", initials: "ИА" },
-  { id: "u4", name: "Петрова Е.С.", position: "Метролог / ВИК, II ур.", role: "specialist", initials: "ПЕ" },
-  { id: "u5", name: "Гончаров В.И.", position: "Дефектоскопист РК, II ур.", role: "specialist", initials: "ГВ" },
-  { id: "u6", name: "Кузнецова И.В.", position: "Аудитор СМК ISO 17025", role: "auditor", initials: "КИ" },
-];
+const ONLINE_MS = 2 * 60 * 1000;
+const HEARTBEAT_MS = 45 * 1000;
 
 type Ctx = {
   people: Person[];
   user: Person;
-  setUserId: (id: string) => void;
-  setRoleOf: (id: string, role: Role) => void;
+  setRoleOf: (id: string, role: Role) => Promise<string | null>;
+  reload: () => Promise<void>;
+  signOut: () => Promise<void>;
   can: (p: Perm) => boolean;
   denyMessage: (p: Perm) => string;
 };
 
 const RolesContext = createContext<Ctx | null>(null);
-const STORAGE = "ndt-access-v1";
 
 export function RolesProvider({ children }: { children: ReactNode }) {
-  const [people, setPeople] = useState<Person[]>(PEOPLE);
-  const [userId, setUserId] = useState("u1");
+  const [sessionUserId, setSessionUserId] = useState<string | null | undefined>(undefined);
+  const [people, setPeople] = useState<Person[]>([]);
+  const [now, setNow] = useState(() => Date.now());
 
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE);
-      if (!raw) return;
-      const saved = JSON.parse(raw) as { userId?: string; roles?: Record<string, Role> };
-      if (saved.roles) setPeople((ps) => ps.map((p) => ({ ...p, role: saved.roles![p.id] ?? p.role })));
-      if (saved.userId) setUserId(saved.userId);
-    } catch { /* ignore */ }
+  const reload = useCallback(async () => {
+    const [{ data: profiles }, { data: roles }] = await Promise.all([
+      supabase.from("profiles").select("*").order("created_at"),
+      supabase.from("user_roles").select("user_id, role"),
+    ]);
+    const roleOf = new Map((roles ?? []).map((r) => [r.user_id, r.role as Role]));
+    const t = Date.now();
+    setNow(t);
+    setPeople((profiles ?? []).map((p) => ({
+      id: p.id, login: p.login, name: p.name, position: p.position, initials: p.initials,
+      role: roleOf.get(p.id) ?? "specialist",
+      lastSignIn: p.last_sign_in_at, lastSeen: p.last_seen_at,
+      online: !!p.last_seen_at && t - new Date(p.last_seen_at).getTime() < ONLINE_MS,
+    })));
   }, []);
 
   useEffect(() => {
-    const roles = Object.fromEntries(people.map((p) => [p.id, p.role]));
-    try { localStorage.setItem(STORAGE, JSON.stringify({ userId, roles })); } catch { /* ignore */ }
-  }, [people, userId]);
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      setSessionUserId(session?.user.id ?? null);
+      if (event === "SIGNED_OUT") setPeople([]);
+    });
+    supabase.auth.getSession().then(({ data }) => setSessionUserId(data.session?.user.id ?? null));
+    return () => sub.subscription.unsubscribe();
+  }, []);
 
-  const value = useMemo<Ctx>(() => {
-    const user = people.find((p) => p.id === userId) ?? people[0]!;
+  // presence heartbeat + refresh of colleagues' status
+  useEffect(() => {
+    if (!sessionUserId) return;
+    let alive = true;
+    const beat = async () => {
+      await supabase.from("profiles").update({ last_seen_at: new Date().toISOString() }).eq("id", sessionUserId);
+      if (alive) await reload();
+    };
+    void beat();
+    const id = setInterval(beat, HEARTBEAT_MS);
+    return () => { alive = false; clearInterval(id); };
+  }, [sessionUserId, reload]);
+
+  const signOut = useCallback(async () => {
+    if (sessionUserId) await supabase.from("profiles").update({ last_seen_at: null }).eq("id", sessionUserId);
+    await supabase.auth.signOut();
+  }, [sessionUserId]);
+
+  const user = people.find((p) => p.id === sessionUserId);
+
+  const value = useMemo<Ctx | null>(() => {
+    if (!user) return null;
     const allowed = ROLE_PERMS[user.role];
     return {
-      people,
-      user,
-      setUserId,
-      setRoleOf: (id, role) => setPeople((ps) => ps.map((p) => (p.id === id ? { ...p, role } : p))),
+      people: people.map((p) => (p.id === user.id ? { ...p, online: true } : p)),
+      user: { ...user, online: true },
+      reload,
+      signOut,
+      setRoleOf: async (id, role) => {
+        const { error } = await supabase.from("user_roles").update({ role }).eq("user_id", id);
+        if (error) return "Не удалось изменить роль";
+        await reload();
+        return null;
+      },
       can: (p) => allowed.includes(p),
-      denyMessage: (p) =>
-        `Недостаточно прав: «${PERM_TITLE[p]}» недоступно для роли «${ROLE_TITLE[user.role]}»`,
+      denyMessage: (p) => `Недостаточно прав: «${PERM_TITLE[p]}» недоступно для роли «${ROLE_TITLE[user.role]}»`,
     };
-  }, [people, userId]);
+  }, [people, user, reload, signOut, now]);
 
+  if (sessionUserId === undefined || (sessionUserId && !value && people.length === 0)) {
+    return <div className="grid h-screen place-items-center bg-background text-muted-foreground"><Loader2 className="size-5 animate-spin" /></div>;
+  }
+  if (!sessionUserId || !value) return <LoginScreen noProfile={!!sessionUserId} />;
   return <RolesContext.Provider value={value}>{children}</RolesContext.Provider>;
+}
+
+function LoginScreen({ noProfile }: { noProfile: boolean }) {
+  const [login, setLogin] = useState("");
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(noProfile ? "Учётная запись не привязана к сотруднику лаборатории" : null);
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    setBusy(true); setError(null);
+    const { data, error: err } = await supabase.auth.signInWithPassword({ email: `${login.trim().toLowerCase()}@${LOGIN_DOMAIN}`, password });
+    if (err || !data.user) { setError("Неверный логин или пароль"); setBusy(false); return; }
+    await supabase.from("profiles").update({ last_sign_in_at: new Date().toISOString(), last_seen_at: new Date().toISOString() }).eq("id", data.user.id);
+    setBusy(false);
+  };
+
+  return (
+    <div className="grid min-h-screen place-items-center bg-muted/30 px-4">
+      <form onSubmit={submit} className="w-[360px] rounded-sm border bg-card p-6 shadow-panel">
+        <div className="mb-5 flex items-center gap-3">
+          <div className="grid size-10 place-items-center rounded-sm bg-primary text-primary-foreground"><FlaskConical className="size-5" /></div>
+          <div><div className="text-sm font-bold tracking-wide">NDT CONTROL</div><div className="text-[10px] text-muted-foreground">ЛАБОРАТОРИЯ НК · ЛНК-017</div></div>
+        </div>
+        <h1 className="mb-1 text-base font-semibold">Вход в систему</h1>
+        <p className="mb-4 text-xs text-muted-foreground">Используйте логин и пароль, выданные руководителем лаборатории.</p>
+        <label className="mb-3 block text-xs"><span className="mb-1 block font-medium">Логин</span>
+          <input autoFocus autoComplete="username" value={login} onChange={(e) => setLogin(e.target.value)} className="h-9 w-full rounded-sm border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring" placeholder="например, ivanov" /></label>
+        <label className="mb-4 block text-xs"><span className="mb-1 block font-medium">Пароль</span>
+          <input type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} className="h-9 w-full rounded-sm border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring" /></label>
+        {error && <div className="mb-3 rounded-sm border border-red/40 bg-red/8 px-3 py-2 text-xs text-red">{error}</div>}
+        <button type="submit" disabled={busy || !login || !password} className="flex h-9 w-full items-center justify-center gap-2 rounded-sm bg-primary text-sm font-medium text-primary-foreground disabled:opacity-60">
+          {busy ? <Loader2 className="size-4 animate-spin" /> : <LogIn className="size-4" />}Войти
+        </button>
+        {noProfile && <button type="button" onClick={() => supabase.auth.signOut()} className="mt-2 w-full text-xs text-muted-foreground underline">Выйти</button>}
+      </form>
+    </div>
+  );
 }
 
 export function useAccess() {
   const ctx = useContext(RolesContext);
   if (!ctx) throw new Error("useAccess must be used within RolesProvider");
   return ctx;
+}
+
+export function formatSeen(iso: string | null) {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  return d.toLocaleString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
 }
