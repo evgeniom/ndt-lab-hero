@@ -14,6 +14,7 @@ import { Route as AccessRouteImport } from './routes/access'
 import { Route as EquipmentRouteImport } from './routes/equipment'
 import { Route as QualityRouteImport } from './routes/quality'
 import { Route as TestsRouteImport } from './routes/tests'
+import { Route as ApiSeedAccountsRouteImport } from './routes/api/seed-accounts'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -40,6 +41,11 @@ const TestsRoute = TestsRouteImport.update({
   path: '/tests',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiSeedAccountsRoute = ApiSeedAccountsRouteImport.update({
+  id: '/api/seed-accounts',
+  path: '/api/seed-accounts',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -47,6 +53,7 @@ export interface FileRoutesByFullPath {
   '/equipment': typeof EquipmentRoute
   '/quality': typeof QualityRoute
   '/tests': typeof TestsRoute
+  '/api/seed-accounts': typeof ApiSeedAccountsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +61,7 @@ export interface FileRoutesByTo {
   '/equipment': typeof EquipmentRoute
   '/quality': typeof QualityRoute
   '/tests': typeof TestsRoute
+  '/api/seed-accounts': typeof ApiSeedAccountsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,13 +70,33 @@ export interface FileRoutesById {
   '/equipment': typeof EquipmentRoute
   '/quality': typeof QualityRoute
   '/tests': typeof TestsRoute
+  '/api/seed-accounts': typeof ApiSeedAccountsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/access' | '/equipment' | '/quality' | '/tests'
+  fullPaths:
+    | '/'
+    | '/access'
+    | '/equipment'
+    | '/quality'
+    | '/tests'
+    | '/api/seed-accounts'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/access' | '/equipment' | '/quality' | '/tests'
-  id: '__root__' | '/' | '/access' | '/equipment' | '/quality' | '/tests'
+  to:
+    | '/'
+    | '/access'
+    | '/equipment'
+    | '/quality'
+    | '/tests'
+    | '/api/seed-accounts'
+  id:
+    | '__root__'
+    | '/'
+    | '/access'
+    | '/equipment'
+    | '/quality'
+    | '/tests'
+    | '/api/seed-accounts'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -77,6 +105,7 @@ export interface RootRouteChildren {
   EquipmentRoute: typeof EquipmentRoute
   QualityRoute: typeof QualityRoute
   TestsRoute: typeof TestsRoute
+  ApiSeedAccountsRoute: typeof ApiSeedAccountsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -116,6 +145,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TestsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/seed-accounts': {
+      id: '/api/seed-accounts'
+      path: '/api/seed-accounts'
+      fullPath: '/api/seed-accounts'
+      preLoaderRoute: typeof ApiSeedAccountsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -125,6 +161,7 @@ const rootRouteChildren: RootRouteChildren = {
   EquipmentRoute: EquipmentRoute,
   QualityRoute: QualityRoute,
   TestsRoute: TestsRoute,
+  ApiSeedAccountsRoute: ApiSeedAccountsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
