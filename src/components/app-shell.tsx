@@ -2,10 +2,11 @@ import { Link } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
 import {
   BarChart3, Bell, ClipboardList, FlaskConical, LogOut, Menu, Moon, Search,
-  ShieldCheck, Sun, Users, Wrench,
+  Settings, ShieldCheck, Sun, Users, Wrench,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ROLE_TITLE, useAccess } from "@/lib/roles";
+import { readSettings, useSettings } from "@/lib/settings";
 
 const nav = [
   { to: "/", icon: BarChart3, label: "Дашборд", sub: "Обзор лаборатории" },
@@ -13,6 +14,7 @@ const nav = [
   { to: "/equipment", icon: Wrench, label: "Оборудование и поверки", sub: "Метрологический парк" },
   { to: "/access", icon: Users, label: "Специалисты и аттестация", sub: "Роли и права доступа" },
   { to: "/quality", icon: ShieldCheck, label: "Качество и аудит ISO 17025", sub: "СМК и несоответствия" },
+  { to: "/settings", icon: Settings, label: "Настройки", sub: "Учётные записи и параметры" },
 ] as const;
 
 export function AppShell({
@@ -26,10 +28,13 @@ export function AppShell({
   searchPlaceholder?: string;
   children: ReactNode;
 }) {
-  const { people, user, signOut } = useAccess();
+  const { people, user, signOut, can } = useAccess();
+  const settings = useSettings();
+  const items = nav.filter((n) => n.to !== "/settings" || can("roles.manage"));
   const online = people.filter((p) => p.online).length;
   const [dark, setDark] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  useEffect(() => { setDark(document.documentElement.classList.contains("dark") || readSettings().defaultTheme === "dark"); }, []);
   useEffect(() => { document.documentElement.classList.toggle("dark", dark); }, [dark]);
 
   return (
@@ -37,11 +42,11 @@ export function AppShell({
       <aside className={`${collapsed ? "w-[68px]" : "w-[244px]"} flex shrink-0 flex-col border-r border-sidebar-border bg-sidebar transition-[width] duration-200`}>
         <div className="flex h-16 items-center gap-3 border-b border-sidebar-border px-4">
           <div className="grid size-9 shrink-0 place-items-center rounded-sm bg-primary text-primary-foreground"><FlaskConical className="size-5" /></div>
-          {!collapsed && <div><div className="text-sm font-bold tracking-wide">NDT CONTROL</div><div className="text-[10px] text-muted-foreground">ЛАБОРАТОРИЯ НК · ЛНК-017</div></div>}
+          {!collapsed && <div><div className="text-sm font-bold tracking-wide">NDT CONTROL</div><div className="text-[10px] text-muted-foreground">{settings.labName.toUpperCase()} · {settings.labCode}</div></div>}
         </div>
         <nav className="flex-1 space-y-1 p-2">
           <div className={`${collapsed ? "hidden" : "block"} px-2 pb-2 pt-3 text-[10px] font-semibold uppercase text-muted-foreground`}>Рабочее пространство</div>
-          {nav.map(({ to, icon: Icon, label, sub }) => {
+          {items.map(({ to, icon: Icon, label, sub }) => {
             const isActive = label === active;
             return (
               <Link key={label} to={to} title={collapsed ? label : undefined} className={`group flex h-12 w-full items-center gap-3 rounded-sm px-3 text-left transition-colors ${isActive ? "bg-sidebar-primary text-sidebar-primary-foreground" : "text-sidebar-foreground hover:bg-sidebar-accent"}`}>
@@ -64,7 +69,7 @@ export function AppShell({
 
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex h-16 shrink-0 items-center gap-4 border-b bg-card px-5">
-          <div className="text-xs text-muted-foreground">Лаборатория НК <span className="px-1">/</span> <strong className="text-foreground">{breadcrumb}</strong></div>
+          <div className="text-xs text-muted-foreground">{settings.labName} <span className="px-1">/</span> <strong className="text-foreground">{breadcrumb}</strong></div>
           <div className="relative ml-auto w-[320px]"><Search className="absolute left-3 top-2.5 size-4 text-muted-foreground" /><input className="h-9 w-full rounded-sm border bg-background pl-9 pr-3 text-xs outline-none focus:ring-2 focus:ring-ring" placeholder={searchPlaceholder} /></div>
           <div className="flex items-center rounded-sm border bg-background p-0.5"><Button variant={!dark ? "secondary" : "ghost"} size="icon" onClick={() => setDark(false)} className="size-7" title="Светлая тема"><Sun className="size-3.5" /></Button><Button variant={dark ? "secondary" : "ghost"} size="icon" onClick={() => setDark(true)} className="size-7" title="Тёмная тема"><Moon className="size-3.5" /></Button></div>
           <Button variant="ghost" size="icon" className="relative size-9"><Bell className="size-4" /><span className="absolute right-1.5 top-1.5 size-1.5 rounded-full bg-destructive" /></Button>
