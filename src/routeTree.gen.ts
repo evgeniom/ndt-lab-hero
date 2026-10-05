@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AccessRouteImport } from './routes/access'
 import { Route as EquipmentRouteImport } from './routes/equipment'
 import { Route as QualityRouteImport } from './routes/quality'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as TestsRouteImport } from './routes/tests'
 
 const IndexRoute = IndexRouteImport.update({
@@ -35,6 +36,11 @@ const QualityRoute = QualityRouteImport.update({
   path: '/quality',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TestsRoute = TestsRouteImport.update({
   id: '/tests',
   path: '/tests',
@@ -46,6 +52,7 @@ export interface FileRoutesByFullPath {
   '/access': typeof AccessRoute
   '/equipment': typeof EquipmentRoute
   '/quality': typeof QualityRoute
+  '/settings': typeof SettingsRoute
   '/tests': typeof TestsRoute
 }
 export interface FileRoutesByTo {
@@ -53,6 +60,7 @@ export interface FileRoutesByTo {
   '/access': typeof AccessRoute
   '/equipment': typeof EquipmentRoute
   '/quality': typeof QualityRoute
+  '/settings': typeof SettingsRoute
   '/tests': typeof TestsRoute
 }
 export interface FileRoutesById {
@@ -61,14 +69,23 @@ export interface FileRoutesById {
   '/access': typeof AccessRoute
   '/equipment': typeof EquipmentRoute
   '/quality': typeof QualityRoute
+  '/settings': typeof SettingsRoute
   '/tests': typeof TestsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/access' | '/equipment' | '/quality' | '/tests'
+  fullPaths:
+    '/' | '/access' | '/equipment' | '/quality' | '/settings' | '/tests'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/access' | '/equipment' | '/quality' | '/tests'
-  id: '__root__' | '/' | '/access' | '/equipment' | '/quality' | '/tests'
+  to: '/' | '/access' | '/equipment' | '/quality' | '/settings' | '/tests'
+  id:
+    | '__root__'
+    | '/'
+    | '/access'
+    | '/equipment'
+    | '/quality'
+    | '/settings'
+    | '/tests'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -76,6 +93,7 @@ export interface RootRouteChildren {
   AccessRoute: typeof AccessRoute
   EquipmentRoute: typeof EquipmentRoute
   QualityRoute: typeof QualityRoute
+  SettingsRoute: typeof SettingsRoute
   TestsRoute: typeof TestsRoute
 }
 
@@ -109,6 +127,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof QualityRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/tests': {
       id: '/tests'
       path: '/tests'
@@ -124,6 +149,7 @@ const rootRouteChildren: RootRouteChildren = {
   AccessRoute: AccessRoute,
   EquipmentRoute: EquipmentRoute,
   QualityRoute: QualityRoute,
+  SettingsRoute: SettingsRoute,
   TestsRoute: TestsRoute,
 }
 export const routeTree = rootRouteImport
