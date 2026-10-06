@@ -139,11 +139,59 @@ export function RolesProvider({ children }: { children: ReactNode }) {
     };
   }, [people, user, reload, signOut, now]);
 
-  if (sessionUserId === undefined || (sessionUserId && !value && people.length === 0)) {
-    return <div className="grid h-screen place-items-center bg-background text-muted-foreground"><Loader2 className="size-5 animate-spin" /></div>;
-  }
-  if (!sessionUserId || !value) return <LoginScreen noProfile={!!sessionUserId} />;
-  return <RolesContext.Provider value={value}>{children}</RolesContext.Provider>;
+  const loading = sessionUserId === undefined || (!!sessionUserId && !value && people.length === 0);
+  return (
+    <>
+      <Splash visible={loading} />
+      {!loading && (!sessionUserId || !value ? <LoginScreen noProfile={!!sessionUserId} /> : <RolesContext.Provider value={value}>{children}</RolesContext.Provider>)}
+    </>
+  );
+}
+
+const SPLASH_MIN_MS = 1700;
+const SPLASH_FADE_MS = 600;
+
+function Splash({ visible }: { visible: boolean }) {
+  const [mounted, setMounted] = useState(true);
+  const [leaving, setLeaving] = useState(false);
+  const shownAt = useMemo(() => Date.now(), []);
+
+  useEffect(() => {
+    if (visible) return;
+    const wait = Math.max(0, SPLASH_MIN_MS - (Date.now() - shownAt));
+    const t1 = setTimeout(() => setLeaving(true), wait);
+    const t2 = setTimeout(() => setMounted(false), wait + SPLASH_FADE_MS);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [visible, shownAt]);
+
+  if (!mounted) return null;
+  return (
+    <div
+      className="fixed inset-0 z-[100] grid place-items-center bg-[oklch(0.16_0.02_250)]"
+      style={{ animation: leaving ? `splash-fade-out ${SPLASH_FADE_MS}ms ease forwards` : "splash-fade-in 300ms ease" }}
+    >
+      <div className="flex flex-col items-center">
+        <div
+          className="grid size-16 place-items-center rounded-md bg-primary text-primary-foreground"
+          style={{ animation: "splash-logo 700ms cubic-bezier(0.22,1,0.36,1) both, splash-glow 2.2s ease-in-out 700ms infinite" }}
+        >
+          <FlaskConical className="size-8" />
+        </div>
+        <div className="mt-5 text-lg font-bold tracking-[0.22em] text-white" style={{ animation: "splash-rise 600ms ease 250ms both" }}>
+          NDT CONTROL
+        </div>
+        <div className="mt-1 text-[11px] tracking-[0.3em] text-white/50" style={{ animation: "splash-rise 600ms ease 400ms both" }}>
+          ЛАБОРАТОРИЯ НК · ЛНК-017
+        </div>
+        <div className="mt-7 h-[3px] w-52 overflow-hidden rounded-full bg-white/10" style={{ animation: "splash-rise 500ms ease 550ms both" }}>
+          <div className="h-full w-1/4 rounded-full bg-primary" style={{ animation: "splash-scan 1.1s ease-in-out infinite" }} />
+        </div>
+        <div className="mt-3 text-[10px] text-white/40" style={{ animation: "splash-rise 500ms ease 700ms both" }}>
+          Загрузка данных лаборатории…
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function LoginScreen({ noProfile }: { noProfile: boolean }) {
