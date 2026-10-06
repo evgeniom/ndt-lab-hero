@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 export type AppSettings = {
   labName: string;
@@ -38,8 +39,15 @@ export const DEFAULT_SETTINGS: AppSettings = {
   notifyEmail: false,
 };
 
+// Server (app_settings row id=1) is the source of truth; localStorage is only a fast-start cache.
 const KEY = "ndt-settings-v1";
 const EVT = "ndt-settings";
+let loaded: Promise<AppSettings> | null = null;
+
+function cache(s: AppSettings) {
+  localStorage.setItem(KEY, JSON.stringify(s));
+  window.dispatchEvent(new Event(EVT));
+}
 
 export function readSettings(): AppSettings {
   if (typeof window === "undefined") return DEFAULT_SETTINGS;
@@ -47,9 +55,25 @@ export function readSettings(): AppSettings {
   catch { return DEFAULT_SETTINGS; }
 }
 
-export function saveSettings(s: AppSettings) {
-  localStorage.setItem(KEY, JSON.stringify(s));
-  window.dispatchEvent(new Event(EVT));
+export function fetchSettings(force = false): Promise<AppSettings> {
+  if (!loaded || force) {
+    loaded = (async () => {
+      const { data } = await supabase.from("app_settings").select("data").eq("id", 1).maybeSingle();
+      const s = { ...DEFAULT_SETTINGS, ...((data?.data ?? {}) as Partial<AppSettings>) };
+      if (data) cache(s);
+      return data ? s : readSettings();
+    })().catch(() => readSettings());
+  }
+  return loaded;
+}
+
+export async function saveSettings(s: AppSettings): Promise<string | null> {
+  const { data: u } = await supabase.auth.getUser();
+  const { error } = await supabase.from("app_settings").upsert({ id: 1, data: s, updated_at: new Date().toISOString(), updated_by: u.user?.id ?? null });
+  if (error) return "Не удалось сохранить настройки на сервере";
+  loaded = Promise.resolve(s);
+  cache(s);
+  return null;
 }
 
 export function useSettings() {
@@ -57,6 +81,7 @@ export function useSettings() {
   useEffect(() => {
     const up = () => setS(readSettings());
     up();
+    void fetchSettings().then(setS);
     window.addEventListener(EVT, up);
     return () => window.removeEventListener(EVT, up);
   }, []);

@@ -5,7 +5,7 @@ import { AppShell } from "@/components/app-shell";
 import { CreateDialog, ResetDialog } from "@/components/account-dialogs";
 import { Button } from "@/components/ui/button";
 import { ROLE_TITLE, formatSeen, useAccess, type Person } from "@/lib/roles";
-import { DEFAULT_SETTINGS, readSettings, saveSettings, type AppSettings } from "@/lib/settings";
+import { DEFAULT_SETTINGS, fetchSettings, readSettings, saveSettings, type AppSettings } from "@/lib/settings";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({
@@ -80,7 +80,7 @@ function SettingsPage() {
           </table>
           <div className="border-t px-3 py-2 text-[10px] text-muted-foreground">Пароли хранятся на сервере в зашифрованном виде и не отображаются. Сообщите новый пароль сотруднику лично.</div>
         </div>
-      ) : <AppSettingsForm onSaved={() => flash("Настройки сохранены")} />}
+      ) : <AppSettingsForm onSaved={flash} />}
 
       <CreateDialog open={creating} onClose={() => setCreating(false)} onDone={async (name) => { setCreating(false); await reload(); flash(`Учётная запись «${name}» создана`); }} />
       <ResetDialog person={resetFor} onClose={() => setResetFor(null)} onDone={(name) => { setResetFor(null); flash(`Пароль для «${name}» изменён`); }} />
@@ -107,9 +107,9 @@ function Row({ label, hint, children }: { label: string; hint?: string; children
   );
 }
 
-function AppSettingsForm({ onSaved }: { onSaved: () => void }) {
+function AppSettingsForm({ onSaved }: { onSaved: (m: string) => void }) {
   const [s, setS] = useState<AppSettings>(DEFAULT_SETTINGS);
-  useEffect(() => setS(readSettings()), []);
+  useEffect(() => { setS(readSettings()); void fetchSettings(true).then(setS); }, []);
   const set = <K extends keyof AppSettings>(k: K, v: AppSettings[K]) => setS((p) => ({ ...p, [k]: v }));
   const num = (k: keyof AppSettings, min: number, max: number) => (
     <input type="number" min={min} max={max} className={input} value={s[k] as number} onChange={(e) => set(k, Math.min(max, Math.max(min, Number(e.target.value) || min)) as never)} />
@@ -159,7 +159,7 @@ function AppSettingsForm({ onSaved }: { onSaved: () => void }) {
       </div>
       <div className="mt-4 flex justify-end gap-2">
         <Button size="sm" variant="outline" onClick={() => setS(DEFAULT_SETTINGS)}><RotateCcw className="mr-1 size-3.5" />По умолчанию</Button>
-        <Button size="sm" onClick={() => { saveSettings(s); onSaved(); }}><Save className="mr-1 size-3.5" />Сохранить</Button>
+        <Button size="sm" onClick={async () => { const err = await saveSettings(s); onSaved(err ?? "Настройки сохранены на сервере"); }}><Save className="mr-1 size-3.5" />Сохранить</Button>
       </div>
     </div>
   );

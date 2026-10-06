@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ROLE_TITLE, useAccess } from "@/lib/roles";
-import { readSettings, useSettings } from "@/lib/settings";
+import { fetchSettings, readSettings, useSettings } from "@/lib/settings";
 
 const nav = [
   { to: "/", icon: BarChart3, label: "Дашборд", sub: "Обзор лаборатории" },
@@ -34,7 +34,10 @@ export function AppShell({
   const online = people.filter((p) => p.online).length;
   const [dark, setDark] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
-  useEffect(() => { setDark(document.documentElement.classList.contains("dark") || readSettings().defaultTheme === "dark"); }, []);
+  useEffect(() => {
+    setDark(document.documentElement.classList.contains("dark") || readSettings().defaultTheme === "dark");
+    void fetchSettings().then((s) => setDark(s.defaultTheme === "dark"));
+  }, []);
   useEffect(() => { document.documentElement.classList.toggle("dark", dark); }, [dark]);
 
   return (
