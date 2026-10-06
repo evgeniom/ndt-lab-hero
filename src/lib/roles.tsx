@@ -153,11 +153,52 @@ export function RolesProvider({ children }: { children: ReactNode }) {
   }, [people, user, reload, signOut, now]);
 
   const loading = sessionUserId === undefined || (!!sessionUserId && !value && people.length === 0);
+  const stage: "loading" | "login" | "app" = loading ? "loading" : !sessionUserId || !value ? "login" : "app";
   return (
     <>
-      <Splash visible={loading} />
-      {!loading && (!sessionUserId || !value ? <LoginScreen noProfile={!!sessionUserId} /> : <RolesContext.Provider value={value}>{children}</RolesContext.Provider>)}
+      <Splash visible={stage === "loading"} />
+      {stage === "login" && <div style={{ animation: "splash-fade-in 500ms ease 100ms both" }}><LoginScreen noProfile={!!sessionUserId} /></div>}
+      {stage === "app" && (
+        <div style={{ animation: "app-enter 600ms cubic-bezier(0.22,1,0.36,1) both" }}>
+          <RolesContext.Provider value={value}>{children}</RolesContext.Provider>
+        </div>
+      )}
+      {stage === "app" && entering && <EnterSplash name={value?.user.name ?? ""} />}
     </>
+  );
+}
+
+const ENTER_MS = 1500;
+
+function EnterSplash({ name }: { name: string }) {
+  const [leaving, setLeaving] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setLeaving(true), ENTER_MS - 450);
+    return () => clearTimeout(t);
+  }, []);
+  return (
+    <div
+      className="fixed inset-0 z-[100] grid place-items-center bg-[oklch(0.16_0.02_250)]"
+      style={{ animation: leaving ? "splash-fade-out 450ms ease forwards" : "splash-fade-in 250ms ease" }}
+    >
+      <div className="flex flex-col items-center">
+        <div
+          className="grid size-14 place-items-center rounded-md bg-primary text-primary-foreground"
+          style={{ animation: "splash-logo 600ms cubic-bezier(0.22,1,0.36,1) both, splash-glow 2.2s ease-in-out 600ms infinite" }}
+        >
+          <FlaskConical className="size-7" />
+        </div>
+        <div className="mt-4 text-[11px] tracking-[0.3em] text-white/50" style={{ animation: "splash-rise 500ms ease 150ms both" }}>
+          ДОБРО ПОЖАЛОВАТЬ
+        </div>
+        <div className="mt-1 text-lg font-bold text-white" style={{ animation: "splash-rise 500ms ease 300ms both" }}>
+          {name}
+        </div>
+        <div className="mt-6 h-[3px] w-44 overflow-hidden rounded-full bg-white/10" style={{ animation: "splash-rise 400ms ease 400ms both" }}>
+          <div className="h-full w-1/4 rounded-full bg-primary" style={{ animation: "splash-scan 0.9s ease-in-out infinite" }} />
+        </div>
+      </div>
+    </div>
   );
 }
 
