@@ -74,6 +74,19 @@ export function RolesProvider({ children }: { children: ReactNode }) {
   const [sessionUserId, setSessionUserId] = useState<string | null | undefined>(undefined);
   const [people, setPeople] = useState<Person[]>([]);
   const [now, setNow] = useState(() => Date.now());
+  const [entering, setEntering] = useState(false);
+  const prevUserId = useRef<string | null | undefined>(undefined);
+
+  // stage transition: login -> welcome splash -> main screen
+  useEffect(() => {
+    const wasLoggedOut = prevUserId.current === null;
+    prevUserId.current = sessionUserId;
+    if (wasLoggedOut && sessionUserId) {
+      setEntering(true);
+      const t = setTimeout(() => setEntering(false), ENTER_MS);
+      return () => clearTimeout(t);
+    }
+  }, [sessionUserId]);
 
   const reload = useCallback(async () => {
     const [{ data: profiles }, { data: roles }] = await Promise.all([
