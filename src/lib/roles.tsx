@@ -86,6 +86,7 @@ export function RolesProvider({ children }: { children: ReactNode }) {
       const t = setTimeout(() => setEntering(false), ENTER_MS);
       return () => clearTimeout(t);
     }
+    return undefined;
   }, [sessionUserId]);
 
   const reload = useCallback(async () => {
