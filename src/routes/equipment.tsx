@@ -1,3 +1,4 @@
+import { useSettings } from "@/lib/settings";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import {
@@ -23,7 +24,7 @@ export const Route = createFileRoute("/equipment")({
   component: EquipmentPage,
 });
 
-export const TODAY = new Date("2026-09-20T00:00:00Z");
+export const TODAY = new Date(new Date().toISOString().slice(0, 10) + "T00:00:00Z");
 
 export type Item = {
   id: string;
@@ -214,16 +215,19 @@ const methods = ["Все методы", "ВИК", "УЗК", "РК", "МПК", "�
 const owners = ["Все ответственные", ...Array.from(new Set(data.map((i) => i.owner)))];
 const statuses = ["Все", "Действует", "Истекает (<30 дней)", "Просрочена", "На калибровке/поверке"] as const;
 
-const daysLeft = (item: Item) => Math.round((new Date(item.nextDate).getTime() - TODAY.getTime()) / day);
-type Status = "ok" | "soon" | "overdue" | "service";
-const statusOf = (item: Item): Status => {
+export const daysLeft = (item: Item) => Math.round((new Date(item.nextDate).getTime() - TODAY.getTime()) / day);
+export type Status = "ok" | "soon" | "overdue" | "service";
+let warnDays = 30;
+export const setWarnDays = (n: number) => { warnDays = n; };
+export const statusOf = (item: Item): Status => {
   const left = daysLeft(item);
   if (left < 0) return "overdue";
   if (!item.inService) return "service";
-  return left <= 30 ? "soon" : "ok";
+  return left <= warnDays ? "soon" : "ok";
 };
 
 function EquipmentPage() {
+  setWarnDays(useSettings().verifyWarnDays);
   const [method, setMethod] = useState<string>("Все методы");
   const [owner, setOwner] = useState<string>("Все ответственные");
   const [status, setStatus] = useState<string>("Все");

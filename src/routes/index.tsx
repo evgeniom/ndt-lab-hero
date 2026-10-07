@@ -10,6 +10,7 @@ import {
   FlaskConical, Gauge, Menu, Moon, Plus, Search, Settings, ShieldCheck, Sun,
   Users, Wrench, X,
 } from "lucide-react";
+import { data as eqData, statusOf } from "@/routes/equipment";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -40,9 +41,11 @@ const defects = [
   { name: "Трещины", value: 31, color: "var(--chart-1)" }, { name: "Непровары", value: 27, color: "var(--chart-2)" },
   { name: "Поры", value: 24, color: "var(--chart-3)" }, { name: "Шлак. включения", value: 18, color: "var(--chart-4)" },
 ];
+const eqCount = (f: (s: string) => boolean) => eqData.filter((i) => f(statusOf(i))).length;
 const equipment = [
-  { name: "В строю", value: 38, color: "var(--success)" }, { name: "Калибровка", value: 7, color: "var(--info)" },
-  { name: "Требует поверки", value: 4, color: "var(--warning)" },
+  { name: "В строю", value: eqCount((s) => s === "ok" || s === "soon"), color: "var(--success)" },
+  { name: "Калибровка", value: eqCount((s) => s === "service"), color: "var(--info)" },
+  { name: "Требует поверки", value: eqCount((s) => s === "overdue"), color: "var(--warning)" },
 ];
 type Task = { id: number; day: number; type: "red" | "blue" | "yellow" | "green"; time: string; title: string; meta: string; priority: string; done: boolean };
 const seedTasks: Task[] = [
