@@ -29,6 +29,13 @@
       "when": 1793554396005,
       "tag": "0003_portal_labs",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793554506857,
+      "tag": "0004_lab_members_read_settings",
+      "breakpoints": true
     }
   ]
 }
