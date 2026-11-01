@@ -253,7 +253,7 @@ function LoginScreen({ noProfile }: { noProfile: boolean }) {
   const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(noProfile ? "Учётная запись не привязана к сотруднику лаборатории" : null);
+  const [error, setError] = useState<string | null>(noProfile ? "Заявка лаборатории ещё на рассмотрении или учётная запись не привязана к лаборатории" : null);
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
@@ -281,6 +281,7 @@ function LoginScreen({ noProfile }: { noProfile: boolean }) {
         <button type="submit" disabled={busy || !login || !password} className="flex h-9 w-full items-center justify-center gap-2 rounded-sm bg-primary text-sm font-medium text-primary-foreground disabled:opacity-60">
           {busy ? <Loader2 className="size-4 animate-spin" /> : <LogIn className="size-4" />}Войти
         </button>
+        <a href="/" className="mt-3 block text-center text-xs text-muted-foreground underline">← NDT Portal</a>
         {noProfile && <button type="button" onClick={() => supabase.auth.signOut()} className="mt-2 w-full text-xs text-muted-foreground underline">Выйти</button>}
       </form>
     </div>
