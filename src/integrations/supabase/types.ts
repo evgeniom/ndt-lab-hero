@@ -35,11 +35,135 @@ export type Database = {
         }
         Relationships: []
       }
+      lab_requests: {
+        Row: {
+          created_at: string
+          email: string
+          head_name: string
+          id: string
+          kind: string
+          lab_name: string
+          login: string
+          org_name: string
+          parent_org: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          head_name: string
+          id?: string
+          kind: string
+          lab_name: string
+          login: string
+          org_name: string
+          parent_org?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          head_name?: string
+          id?: string
+          kind?: string
+          lab_name?: string
+          login?: string
+          org_name?: string
+          parent_org?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      labs: {
+        Row: {
+          created_at: string
+          head_name: string
+          id: string
+          is_demo: boolean
+          kind: string
+          lab_name: string
+          org_name: string
+          parent_org: string
+        }
+        Insert: {
+          created_at?: string
+          head_name: string
+          id?: string
+          is_demo?: boolean
+          kind?: string
+          lab_name: string
+          org_name: string
+          parent_org?: string
+        }
+        Update: {
+          created_at?: string
+          head_name?: string
+          id?: string
+          is_demo?: boolean
+          kind?: string
+          lab_name?: string
+          org_name?: string
+          parent_org?: string
+        }
+        Relationships: []
+      }
+      news_posts: {
+        Row: {
+          created_by: string | null
+          id: string
+          published_at: string
+          source: string
+          summary: string
+          title: string
+          url: string
+        }
+        Insert: {
+          created_by?: string | null
+          id?: string
+          published_at?: string
+          source?: string
+          summary?: string
+          title: string
+          url?: string
+        }
+        Update: {
+          created_by?: string | null
+          id?: string
+          published_at?: string
+          source?: string
+          summary?: string
+          title?: string
+          url?: string
+        }
+        Relationships: []
+      }
+      portal_admins: {
+        Row: {
+          user_id: string
+        }
+        Insert: {
+          user_id: string
+        }
+        Update: {
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
           id: string
           initials: string
+          lab_id: string | null
           last_seen_at: string | null
           last_sign_in_at: string | null
           login: string
@@ -50,6 +174,7 @@ export type Database = {
           created_at?: string
           id: string
           initials?: string
+          lab_id?: string | null
           last_seen_at?: string | null
           last_sign_in_at?: string | null
           login: string
@@ -60,13 +185,22 @@ export type Database = {
           created_at?: string
           id?: string
           initials?: string
+          lab_id?: string | null
           last_seen_at?: string | null
           last_sign_in_at?: string | null
           login?: string
           name?: string
           position?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_lab_id_fkey"
+            columns: ["lab_id"]
+            isOneToOne: false
+            referencedRelation: "labs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -106,6 +240,8 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_portal_admin: { Args: { _user_id: string }; Returns: boolean }
+      user_lab_id: { Args: { _user_id: string }; Returns: string }
     }
     Enums: {
       app_role: "head" | "specialist" | "auditor"

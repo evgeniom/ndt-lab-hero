@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
   type ErrorComponentProps,
@@ -116,13 +117,15 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const isPublic = useRouterState({ select: (st) => st.location.pathname === "/" });
 
   return (
     <QueryClientProvider client={queryClient}>
-      <RolesProvider>
-        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-        <Outlet />
-      </RolesProvider>
+      {isPublic ? <Outlet /> : (
+        <RolesProvider>
+          <Outlet />
+        </RolesProvider>
+      )}
     </QueryClientProvider>
   );
 }

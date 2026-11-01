@@ -9,7 +9,7 @@ import { ROLE_TITLE, useAccess } from "@/lib/roles";
 import { fetchSettings, readSettings, useSettings } from "@/lib/settings";
 
 const nav = [
-  { to: "/", icon: BarChart3, label: "Дашборд", sub: "Обзор лаборатории" },
+  { to: "/app", icon: BarChart3, label: "Дашборд", sub: "Обзор лаборатории" },
   { to: "/tests", icon: ClipboardList, label: "Журнал испытаний", sub: "Реестр протоколов" },
   { to: "/equipment", icon: Wrench, label: "Оборудование и поверки", sub: "Метрологический парк" },
   { to: "/access", icon: Users, label: "Специалисты и аттестация", sub: "Роли и права доступа" },
