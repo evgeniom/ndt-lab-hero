@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/app")({
   head: () => ({ meta: [
     { title: "NDT Control — Дашборд лаборатории" },
     { name: "description", content: "Управление испытаниями, метрологией и качеством лаборатории НК по ISO/IEC 17025." },

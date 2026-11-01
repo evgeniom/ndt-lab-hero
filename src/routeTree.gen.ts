@@ -9,21 +9,21 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
 import { Route as AccessRouteImport } from './routes/access'
+import { Route as AppRouteImport } from './routes/app'
 import { Route as EquipmentRouteImport } from './routes/equipment'
 import { Route as QualityRouteImport } from './routes/quality'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as TestsRouteImport } from './routes/tests'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AccessRoute = AccessRouteImport.update({
   id: '/access',
   path: '/access',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppRoute = AppRouteImport.update({
+  id: '/app',
+  path: '/app',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EquipmentRoute = EquipmentRouteImport.update({
@@ -48,16 +48,16 @@ const TestsRoute = TestsRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
   '/access': typeof AccessRoute
+  '/app': typeof AppRoute
   '/equipment': typeof EquipmentRoute
   '/quality': typeof QualityRoute
   '/settings': typeof SettingsRoute
   '/tests': typeof TestsRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
   '/access': typeof AccessRoute
+  '/app': typeof AppRoute
   '/equipment': typeof EquipmentRoute
   '/quality': typeof QualityRoute
   '/settings': typeof SettingsRoute
@@ -65,8 +65,8 @@ export interface FileRoutesByTo {
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
   '/access': typeof AccessRoute
+  '/app': typeof AppRoute
   '/equipment': typeof EquipmentRoute
   '/quality': typeof QualityRoute
   '/settings': typeof SettingsRoute
@@ -75,13 +75,13 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/access' | '/equipment' | '/quality' | '/settings' | '/tests'
+    '/access' | '/app' | '/equipment' | '/quality' | '/settings' | '/tests'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/access' | '/equipment' | '/quality' | '/settings' | '/tests'
+  to: '/access' | '/app' | '/equipment' | '/quality' | '/settings' | '/tests'
   id:
     | '__root__'
-    | '/'
     | '/access'
+    | '/app'
     | '/equipment'
     | '/quality'
     | '/settings'
@@ -89,8 +89,8 @@ export interface FileRouteTypes {
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
   AccessRoute: typeof AccessRoute
+  AppRoute: typeof AppRoute
   EquipmentRoute: typeof EquipmentRoute
   QualityRoute: typeof QualityRoute
   SettingsRoute: typeof SettingsRoute
@@ -99,18 +99,18 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/access': {
       id: '/access'
       path: '/access'
       fullPath: '/access'
       preLoaderRoute: typeof AccessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app': {
+      id: '/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/equipment': {
@@ -145,8 +145,8 @@ declare module '@tanstack/react-router' {
 }
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
   AccessRoute: AccessRoute,
+  AppRoute: AppRoute,
   EquipmentRoute: EquipmentRoute,
   QualityRoute: QualityRoute,
   SettingsRoute: SettingsRoute,
