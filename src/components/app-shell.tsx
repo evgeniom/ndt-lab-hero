@@ -2,10 +2,11 @@ import { Link } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
 import {
   BarChart3, Bell, ClipboardList, FlaskConical, LogOut, Menu, Moon, Search,
-  Settings, ShieldCheck, Sun, Users, Wrench,
+  Globe, Settings, ShieldCheck, Sun, Users, Wrench,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ROLE_TITLE, useAccess } from "@/lib/roles";
+import { supabase } from "@/integrations/supabase/client";
 import { fetchSettings, readSettings, useSettings } from "@/lib/settings";
 
 const nav = [
@@ -15,6 +16,7 @@ const nav = [
   { to: "/access", icon: Users, label: "Специалисты и аттестация", sub: "Роли и права доступа" },
   { to: "/quality", icon: ShieldCheck, label: "Качество и аудит ISO 17025", sub: "СМК и несоответствия" },
   { to: "/settings", icon: Settings, label: "Настройки", sub: "Учётные записи и параметры" },
+  { to: "/admin", icon: Globe, label: "Портал", sub: "Заявки лабораторий и новости" },
 ] as const;
 
 export function AppShell({
@@ -30,7 +32,9 @@ export function AppShell({
 }) {
   const { people, user, signOut, can } = useAccess();
   const settings = useSettings();
-  const items = nav.filter((n) => n.to !== "/settings" || can("roles.manage"));
+  const [portalAdmin, setPortalAdmin] = useState(false);
+  useEffect(() => { void supabase.rpc("is_portal_admin", { _user_id: user.id }).then(({ data }) => setPortalAdmin(!!data)); }, [user.id]);
+  const items = nav.filter((n) => (n.to !== "/settings" || can("roles.manage")) && (n.to !== "/admin" || portalAdmin));
   const online = people.filter((p) => p.online).length;
   const [dark, setDark] = useState(false);
   const [collapsed, setCollapsed] = useState(false);

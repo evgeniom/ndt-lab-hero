@@ -12,3 +12,5 @@
 - Auth is DB-backed (Lovable Cloud): profiles + user_roles tables, username login via synthetic emails <login>@ndt-lab.local; account create/reset via createServerFn in src/lib/accounts.functions.ts guarded by has_role('head').
 - RolesProvider loads session/profiles from the DB and renders the inline login screen; presence = profiles.last_seen_at heartbeat (45s, online <2min). Do not re-add a localStorage user picker.
 - App settings live in DB table app_settings (single row id=1, jsonb data; read by all staff, written only by head); localStorage is just a startup cache. Why: settings must follow the lab across computers.
+- Multi-lab portal: public landing at / (no RolesProvider), lab workspace from /app; labs table, profiles.lab_id, user_lab_id()/is_portal_admin() helpers; registrations go to lab_requests and become labs only via reviewRequest (portal admin). Why: one site serves many labs with isolated staff.
+- Demo lab has fixed id 00000000-0000-0000-0000-000000000017; read-only demo user (auditor) is created on demand by startDemo.
