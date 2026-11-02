@@ -26,7 +26,7 @@ type Req = { id: string; org_name: string; lab_name: string; kind: string; paren
 type Post = { id: string; title: string; summary: string; url: string; source: string; published_at: string };
 const input = "h-8 w-full rounded-sm border bg-background px-2 text-xs outline-none focus:ring-2 focus:ring-ring";
 
-export function usePortalAdmin() {
+function usePortalAdmin() {
   const { user } = useAccess();
   const [ok, setOk] = useState<boolean | null>(null);
   useEffect(() => { void supabase.rpc("is_portal_admin", { _user_id: user.id }).then(({ data }) => setOk(!!data)); }, [user.id]);
