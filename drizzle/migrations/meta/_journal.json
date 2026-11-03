@@ -36,6 +36,13 @@
       "when": 1793554506857,
       "tag": "0004_lab_members_read_settings",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793718448635,
+      "tag": "0005_lab_data",
+      "breakpoints": true
     }
   ]
 }
