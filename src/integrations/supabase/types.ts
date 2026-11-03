@@ -35,6 +35,38 @@ export type Database = {
         }
         Relationships: []
       }
+      lab_data: {
+        Row: {
+          items: Json
+          kind: string
+          lab_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          items?: Json
+          kind: string
+          lab_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          items?: Json
+          kind?: string
+          lab_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_data_lab_id_fkey"
+            columns: ["lab_id"]
+            isOneToOne: false
+            referencedRelation: "labs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lab_requests: {
         Row: {
           created_at: string
@@ -233,6 +265,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_write_lab_data: {
+        Args: { _kind: string; _lab_id: string; _user_id: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

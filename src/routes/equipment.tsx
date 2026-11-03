@@ -5,6 +5,7 @@ import {
   AlertTriangle, CalendarClock, CheckCircle2, ClipboardCheck, Download,
   FileSpreadsheet, FileText, Filter, Plus, Search, ShieldAlert, Wrench, X,
 } from "lucide-react";
+import { useLabData } from "@/lib/lab-data";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { ROLE_TITLE, useAccess } from "@/lib/roles";
@@ -49,7 +50,7 @@ const iso = (d: Date) => d.toISOString().slice(0, 10);
 export const ru = (s: string) => s.split("-").reverse().join(".");
 export const shift = (days: number) => iso(new Date(TODAY.getTime() + days * day));
 
-export const data: Item[] = [
+export const seedData: Item[] = [
   {
     id: "e1", name: "Дефектоскоп ультразвуковой", model: "USN 60 (GE)", method: "УЗК",
     serial: "40673", inv: "ЛНК-УЗК-014", owner: "Соколов Д.М. (ведущий дефектоскопист)",
@@ -212,7 +213,6 @@ export const data: Item[] = [
 ];
 
 const methods = ["Все методы", "ВИК", "УЗК", "РК", "МПК", "ПВК", "Образцы и калибры"] as const;
-const owners = ["Все ответственные", ...Array.from(new Set(data.map((i) => i.owner)))];
 const statuses = ["Все", "Действует", "Истекает (<30 дней)", "Просрочена", "На калибровке/поверке"] as const;
 
 export const daysLeft = (item: Item) => Math.round((new Date(item.nextDate).getTime() - TODAY.getTime()) / day);
@@ -235,13 +235,15 @@ function EquipmentPage() {
   const [detail, setDetail] = useState<Item | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const { user, can } = useAccess();
+  const [data] = useLabData<Item[]>("equipment", seedData, []);
+  const owners = useMemo(() => ["Все ответственные", ...Array.from(new Set(data.map((i) => i.owner)))], [data]);
 
   const counts = useMemo(() => ({
     overdue: data.filter((i) => statusOf(i) === "overdue").length,
     soon: data.filter((i) => statusOf(i) === "soon").length,
     service: data.filter((i) => statusOf(i) === "service").length,
     ok: data.filter((i) => statusOf(i) === "ok").length,
-  }), []);
+  }), [data]);
 
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -256,7 +258,7 @@ function EquipmentPage() {
       if (q && ![item.name, item.model, item.serial, item.inv, item.cert].some((f) => f.toLowerCase().includes(q))) return false;
       return true;
     }).sort((a, b) => daysLeft(a) - daysLeft(b));
-  }, [method, owner, status, query]);
+  }, [data, method, owner, status, query]);
 
   const fire = (message: string) => { setToast(message); setTimeout(() => setToast(null), 3200); };
 
@@ -265,7 +267,7 @@ function EquipmentPage() {
       <div className="mb-4 flex items-end justify-between">
         <div>
           <h1 className="text-xl font-bold">Реестр оборудования и средств контроля</h1>
-          <p className="mt-0.5 text-xs text-muted-foreground">Метрологический парк ЛНК-017 · {data.length} ед. · актуально на 20.09.2026 · ISO/IEC 17025:2017, п. 6.4</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">Метрологический парк · {data.length} ед. · актуально на 20.09.2026 · ISO/IEC 17025:2017, п. 6.4</p>
         </div>
         <div className="flex gap-2">
           <span className="mr-1 self-center rounded-sm bg-muted px-2 py-1 text-[10px] font-semibold text-muted-foreground">{user.name} · {ROLE_TITLE[user.role]}</span>

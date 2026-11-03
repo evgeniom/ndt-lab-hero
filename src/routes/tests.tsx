@@ -7,6 +7,7 @@ import {
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { ROLE_TITLE, useAccess } from "@/lib/roles";
+import { useLabData } from "@/lib/lab-data";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ru, shift, TODAY, day } from "@/routes/equipment";
 
@@ -231,7 +232,7 @@ const stamp = () => {
 /* ---------------- page ---------------- */
 
 function TestsPage() {
-  const [tests, setTests] = useState<Test[]>(seed);
+  const [tests, setTests] = useLabData<Test[]>("tests", seed, []);
   const [tab, setTab] = useState<Method | "Все">("Все");
   const [status, setStatus] = useState("Все статусы");
   const [operator, setOperator] = useState("Все специалисты");
