@@ -43,6 +43,13 @@
       "when": 1793718448635,
       "tag": "0005_lab_data",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793718478908,
+      "tag": "0006_lab_data_quality_auditor",
+      "breakpoints": true
     }
   ]
 }
