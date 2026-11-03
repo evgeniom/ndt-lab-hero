@@ -66,6 +66,8 @@ type Ctx = {
   signOut: () => Promise<void>;
   can: (p: Perm) => boolean;
   denyMessage: (p: Perm) => string;
+  labId: string | null;
+  isDemo: boolean;
 };
 
 const RolesContext = createContext<Ctx | null>(null);
@@ -75,6 +77,7 @@ export function RolesProvider({ children }: { children: ReactNode }) {
   const [people, setPeople] = useState<Person[]>([]);
   const [now, setNow] = useState(() => Date.now());
   const [entering, setEntering] = useState(false);
+  const [lab, setLab] = useState<{ id: string | null; demo: boolean } | null>(null);
   const prevUserId = useRef<string | null | undefined>(undefined);
 
   // stage transition: login -> welcome splash -> main screen
@@ -94,6 +97,14 @@ export function RolesProvider({ children }: { children: ReactNode }) {
       supabase.from("profiles").select("*").order("created_at"),
       supabase.from("user_roles").select("user_id, role"),
     ]);
+    const me = (profiles ?? []).find((p) => p.lab_id) ?? null;
+    const { data: sess } = await supabase.auth.getSession();
+    const mine = (profiles ?? []).find((p) => p.id === sess.session?.user.id) ?? me;
+    const labId = mine?.lab_id ?? null;
+    if (labId) {
+      const { data: l } = await supabase.from("labs").select("is_demo").eq("id", labId).maybeSingle();
+      setLab({ id: labId, demo: !!l?.is_demo });
+    } else setLab({ id: null, demo: false });
     const roleOf = new Map((roles ?? []).map((r) => [r.user_id, r.role as Role]));
     const t = Date.now();
     setNow(t);
@@ -108,7 +119,7 @@ export function RolesProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
       setSessionUserId(session?.user.id ?? null);
-      if (event === "SIGNED_OUT") setPeople([]);
+      if (event === "SIGNED_OUT") { setPeople([]); setLab(null); }
     });
     supabase.auth.getSession().then(({ data }) => setSessionUserId(data.session?.user.id ?? null));
     return () => sub.subscription.unsubscribe();
@@ -135,7 +146,7 @@ export function RolesProvider({ children }: { children: ReactNode }) {
   const user = people.find((p) => p.id === sessionUserId);
 
   const value = useMemo<Ctx | null>(() => {
-    if (!user) return null;
+    if (!user || !lab) return null;
     const allowed = ROLE_PERMS[user.role];
     return {
       people: people.map((p) => (p.id === user.id ? { ...p, online: true } : p)),
@@ -149,9 +160,11 @@ export function RolesProvider({ children }: { children: ReactNode }) {
         return null;
       },
       can: (p) => allowed.includes(p),
+      labId: lab?.id ?? null,
+      isDemo: lab?.demo ?? false,
       denyMessage: (p) => `Недостаточно прав: «${PERM_TITLE[p]}» недоступно для роли «${ROLE_TITLE[user.role]}»`,
     };
-  }, [people, user, reload, signOut, now]);
+  }, [people, user, reload, signOut, now, lab]);
 
   const loading = sessionUserId === undefined || (!!sessionUserId && !value && people.length === 0);
   const stage: "loading" | "login" | "app" = loading ? "loading" : !sessionUserId || !value ? "login" : "app";
