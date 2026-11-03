@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { AlertTriangle, CheckCircle2, ClipboardCheck, Download, FileText, Plus, ShieldCheck, Sparkles, Trash2 } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { NcAdvisor } from "@/components/nc-advisor";
@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAccess } from "@/lib/roles";
+import { useLabData } from "@/lib/lab-data";
 import { TODAY, ru } from "./equipment";
 
 export const Route = createFileRoute("/quality")({
@@ -67,7 +68,7 @@ const SEED = {
   ].map(([clause, title], i) => ({ id: `r${i}`, clause: clause!, title: title!, ok: ![3, 11, 13, 16].includes(i) })) as Req[],
 };
 type State = typeof SEED;
-const KEY = "ndt-quality-v1";
+const EMPTY: State = { audits: [], ncs: [], docs: [], reqs: SEED.reqs.map((r) => ({ ...r, ok: false })) };
 
 const sevTone = { "Значительное": "bg-red/15 text-red", "Малозначительное": "bg-yellow/20 text-yellow", "Замечание": "bg-blue/15 text-blue" } as const;
 const auditTone = { "Запланирован": "bg-blue/15 text-blue", "Проводится": "bg-yellow/20 text-yellow", "Завершён": "bg-green/15 text-green" } as const;
@@ -77,7 +78,7 @@ const input = "h-8 w-full rounded-sm border bg-background px-2 text-xs";
 function QualityPage() {
   const { user, can } = useAccess();
   const manage = user.role === "head" || user.role === "auditor";
-  const [s, setS] = useState<State>(SEED);
+  const [s, setS] = useLabData<State>("quality", SEED, EMPTY);
   const [tab, setTab] = useState<"audits" | "ncs" | "docs" | "reqs">("audits");
   const [toast, setToast] = useState<string | null>(null);
   const [openNc, setOpenNc] = useState<string | null>(null);
@@ -86,8 +87,7 @@ function QualityPage() {
   const [aiOpen, setAiOpen] = useState(false);
   const [ncFilter, setNcFilter] = useState("Все");
 
-  useEffect(() => { try { const r = localStorage.getItem(KEY); if (r) setS(JSON.parse(r)); } catch { /* */ } }, []);
-  const save = (fn: (p: State) => State) => setS((p) => { const n = fn(p); try { localStorage.setItem(KEY, JSON.stringify(n)); } catch { /* */ } return n; });
+  const save = (fn: (p: State) => State) => setS(fn);
   const notify = (t: string) => { setToast(t); setTimeout(() => setToast(null), 2500); };
   const stamp = () => ru(iso(new Date()));
 

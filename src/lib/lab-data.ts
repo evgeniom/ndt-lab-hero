@@ -15,7 +15,7 @@ export function useLabData<T>(kind: LabDataKind, seed: T, empty: T): [T, (fn: T 
   const { labId, isDemo, user } = useAccess();
   const [value, setValue] = useState<T>(isDemo ? seed : empty);
   const [ready, setReady] = useState(false);
-  const canWrite = user.role !== "auditor";
+  const canWrite = user.login !== "demo" && (user.role !== "auditor" || kind === "quality");
   const latest = useRef(value);
 
   useEffect(() => {
