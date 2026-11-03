@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AlertTriangle, CheckCircle2, ClipboardCheck, Download, FileText, Plus, ShieldCheck, Sparkles, Trash2 } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { NcAdvisor } from "@/components/nc-advisor";
