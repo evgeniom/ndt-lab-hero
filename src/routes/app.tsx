@@ -10,7 +10,9 @@ import {
   FlaskConical, Gauge, Menu, Moon, Plus, Search, Settings, ShieldCheck, Sun,
   Users, Wrench, X,
 } from "lucide-react";
-import { data as eqData, statusOf } from "@/routes/equipment";
+import { seedData as eqSeed, statusOf, type Item } from "@/routes/equipment";
+import { useLabData } from "@/lib/lab-data";
+import { useAccess } from "@/lib/roles";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -41,12 +43,16 @@ const defects = [
   { name: "Трещины", value: 31, color: "var(--chart-1)" }, { name: "Непровары", value: 27, color: "var(--chart-2)" },
   { name: "Поры", value: 24, color: "var(--chart-3)" }, { name: "Шлак. включения", value: 18, color: "var(--chart-4)" },
 ];
-const eqCount = (f: (s: string) => boolean) => eqData.filter((i) => f(statusOf(i))).length;
-const equipment = [
-  { name: "В строю", value: eqCount((s) => s === "ok" || s === "soon"), color: "var(--success)" },
-  { name: "Калибровка", value: eqCount((s) => s === "service"), color: "var(--info)" },
-  { name: "Требует поверки", value: eqCount((s) => s === "overdue"), color: "var(--warning)" },
-];
+const eqChart = (eq: Item[]) => {
+  const c = (f: (s: string) => boolean) => eq.filter((i) => f(statusOf(i))).length;
+  return [
+    { name: "В строю", value: c((s) => s === "ok" || s === "soon"), color: "var(--success)" },
+    { name: "Калибровка", value: c((s) => s === "service"), color: "var(--info)" },
+    { name: "Требует поверки", value: c((s) => s === "overdue"), color: "var(--warning)" },
+  ];
+};
+type LabTest = { method: string; status: string };
+type LabQuality = { reqs: { ok: boolean }[] };
 type Task = { id: number; day: number; type: "red" | "blue" | "yellow" | "green"; time: string; title: string; meta: string; priority: string; done: boolean };
 const seedTasks: Task[] = [
   { id: 1, day: 20, type: "red", time: "09:00", title: "Поверка дефектоскопа USN 60", meta: "Зав. № 40673 · ФГУП ВНИИФТРИ", priority: "Высокий", done: false },
@@ -66,7 +72,18 @@ const nav = [
 function Dashboard() {
   const [selectedDay, setSelectedDay] = useState(20);
   const [view, setView] = useState<"month" | "week">("month");
-  const [tasks, setTasks] = useState(seedTasks);
+  const { isDemo } = useAccess();
+  const [tasks, setTasks] = useLabData<Task[]>("tasks", seedTasks, []);
+  const [eq] = useLabData<Item[]>("equipment", eqSeed, []);
+  const [labTests] = useLabData<LabTest[]>("tests", [], []);
+  const [quality] = useLabData<LabQuality>("quality", { reqs: [] }, { reqs: [] });
+  const equipment = eqChart(eq);
+  const eqTotal = equipment.reduce((a, b) => a + b.value, 0);
+  const soonCount = eq.filter((i) => statusOf(i) === "soon").length;
+  const smk = quality.reqs.length ? Math.round((quality.reqs.filter((r) => r.ok).length / quality.reqs.length) * 100) : 0;
+  const methodsData = isDemo ? methods : ["ВИК", "УЗК", "РК", "МПК", "ПВК"].map((name) => ({ name, value: labTests.filter((t) => t.method === name).length }));
+  const dynamicsData = isDemo ? dynamics : [];
+  const defectsData = isDemo ? defects : [];
   const [newTask, setNewTask] = useState("");
   const [detail, setDetail] = useState<Task | null>(null);
   const selectedTasks = tasks.filter((task) => task.day === selectedDay);
@@ -84,24 +101,24 @@ function Dashboard() {
             <div className="mb-4 flex items-end justify-between"><div><h1 className="text-xl font-bold">Дашборд лаборатории</h1><p className="mt-0.5 text-xs text-muted-foreground">Оперативная сводка · 20 сентября 2026 · смена 1</p></div><div className="flex gap-2">{([{icon:Plus,label:"Новое испытание"},{icon:Gauge,label:"Внести замер"},{icon:FileCheck2,label:"Сформировать протокол"},{icon:Wrench,label:"Журнал калибровок"}]).map(({icon:Icon,label},i)=><Button key={label} variant={i===0?"default":"outline"} size="sm" className="h-8 text-xs"><Icon className="size-3.5" />{label}</Button>)}</div></div>
 
             <section className="mb-4 grid grid-cols-4 gap-3">
-              <Stat icon={Activity} label="Активные испытания" value="24" note="6 выездных · 18 в лаборатории" tone="info" />
-              <Stat icon={FileCheck2} label="Готовы к утверждению" value="7" note="ISO 17025 · требуется ЭП" tone="success" />
-              <Stat icon={AlertTriangle} label="Поверка менее 30 дней" value="4" note="2 критично · ближайшая 22 сен" tone="warning" />
-              <Stat icon={ShieldCheck} label="Индекс соответствия СМК" value="94%" note="Готовность к аудиту: высокая" tone="success" progress={94} />
+              <Stat icon={Activity} label="Активные испытания" value={isDemo ? "24" : String(labTests.filter((t) => t.status === "В работе").length)} note={isDemo ? "6 выездных · 18 в лаборатории" : "в работе"} tone="info" />
+              <Stat icon={FileCheck2} label="Готовы к утверждению" value={isDemo ? "7" : String(labTests.filter((t) => t.status === "На утверждении").length)} note="ISO 17025 · требуется ЭП" tone="success" />
+              <Stat icon={AlertTriangle} label="Поверка менее 30 дней" value={isDemo ? "4" : String(soonCount)} note={isDemo ? "2 критично · ближайшая 22 сен" : "по реестру оборудования"} tone="warning" />
+              <Stat icon={ShieldCheck} label="Индекс соответствия СМК" value={isDemo ? "94%" : `${smk}%`} note={isDemo ? "Готовность к аудиту: высокая" : "по чек-листу ISO 17025"} tone="success" progress={isDemo ? 94 : smk} />
             </section>
 
             <section className="mb-4 grid grid-cols-[1.05fr_1.5fr_0.9fr_0.9fr] gap-3">
               <Panel title="Испытания по методам НК" subtitle="За текущий месяц" action="277 всего">
-                <ResponsiveContainer width="100%" height={174}><BarChart data={methods} layout="vertical" margin={{ left: 0, right: 12 }}><CartesianGrid stroke="var(--border)" horizontal={false}/><XAxis type="number" hide/><YAxis type="category" dataKey="name" width={38} tick={{fontSize:10,fill:"var(--muted-foreground)"}} axisLine={false} tickLine={false}/><ChartTooltip contentStyle={tipStyle}/><Bar dataKey="value" fill="var(--primary)" radius={[0,2,2,0]} barSize={13}/></BarChart></ResponsiveContainer>
+                <ResponsiveContainer width="100%" height={174}><BarChart data={methodsData} layout="vertical" margin={{ left: 0, right: 12 }}><CartesianGrid stroke="var(--border)" horizontal={false}/><XAxis type="number" hide/><YAxis type="category" dataKey="name" width={38} tick={{fontSize:10,fill:"var(--muted-foreground)"}} axisLine={false} tickLine={false}/><ChartTooltip contentStyle={tipStyle}/><Bar dataKey="value" fill="var(--primary)" radius={[0,2,2,0]} barSize={13}/></BarChart></ResponsiveContainer>
               </Panel>
               <Panel title="Динамика контроля" subtitle="Объём испытаний и показатели годности" action="6 месяцев">
-                <ResponsiveContainer width="100%" height={174}><AreaChart data={dynamics} margin={{left:-22,right:8,top:8}}><defs><linearGradient id="area" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="var(--primary)" stopOpacity={.28}/><stop offset="1" stopColor="var(--primary)" stopOpacity={0}/></linearGradient></defs><CartesianGrid stroke="var(--border)" vertical={false}/><XAxis dataKey="m" tick={axisTick} axisLine={false} tickLine={false}/><YAxis tick={axisTick} axisLine={false} tickLine={false}/><ChartTooltip contentStyle={tipStyle}/><Area type="monotone" dataKey="total" stroke="var(--primary)" fill="url(#area)" strokeWidth={2}/><Line type="monotone" dataKey="fit" stroke="var(--success)" dot={false} strokeWidth={2}/></AreaChart></ResponsiveContainer>
+                <ResponsiveContainer width="100%" height={174}><AreaChart data={dynamicsData} margin={{left:-22,right:8,top:8}}><defs><linearGradient id="area" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="var(--primary)" stopOpacity={.28}/><stop offset="1" stopColor="var(--primary)" stopOpacity={0}/></linearGradient></defs><CartesianGrid stroke="var(--border)" vertical={false}/><XAxis dataKey="m" tick={axisTick} axisLine={false} tickLine={false}/><YAxis tick={axisTick} axisLine={false} tickLine={false}/><ChartTooltip contentStyle={tipStyle}/><Area type="monotone" dataKey="total" stroke="var(--primary)" fill="url(#area)" strokeWidth={2}/><Line type="monotone" dataKey="fit" stroke="var(--success)" dot={false} strokeWidth={2}/></AreaChart></ResponsiveContainer>
               </Panel>
               <Panel title="Категории дефектов" subtitle="61 выявлено" action="Сентябрь">
-                <Donut data={defects} center="61" />
+                <Donut data={defectsData} center={isDemo ? "61" : "0"} />
               </Panel>
               <Panel title="Метрологический парк" subtitle="49 единиц" action="Обновлено 08:40">
-                <Donut data={equipment} center="49" />
+                <Donut data={equipment} center={isDemo ? "49" : String(eqTotal)} />
               </Panel>
             </section>
 
