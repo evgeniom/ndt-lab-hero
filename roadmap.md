@@ -1,4 +1,5 @@
 # Roadmap
+- [ ] Accreditation number in registration and lab identity under the workspace logo
 - [x] Phase 1: public landing (news, language switcher, sign in, demo)
 - [x] Phase 2: lab registration with portal-admin approval
 - [x] Settings readable by all staff of the lab (not only head)

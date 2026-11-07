@@ -69,6 +69,7 @@ export type Database = {
       }
       lab_requests: {
         Row: {
+          accreditation_number: string
           created_at: string
           email: string
           head_name: string
@@ -84,6 +85,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          accreditation_number?: string
           created_at?: string
           email: string
           head_name: string
@@ -99,6 +101,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          accreditation_number?: string
           created_at?: string
           email?: string
           head_name?: string
@@ -117,6 +120,7 @@ export type Database = {
       }
       labs: {
         Row: {
+          accreditation_number: string
           created_at: string
           head_name: string
           id: string
@@ -127,6 +131,7 @@ export type Database = {
           parent_org: string
         }
         Insert: {
+          accreditation_number?: string
           created_at?: string
           head_name: string
           id?: string
@@ -137,6 +142,7 @@ export type Database = {
           parent_org?: string
         }
         Update: {
+          accreditation_number?: string
           created_at?: string
           head_name?: string
           id?: string
