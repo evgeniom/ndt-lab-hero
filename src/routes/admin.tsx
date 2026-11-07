@@ -22,7 +22,7 @@ export const Route = createFileRoute("/admin")({
   component: AdminPage,
 });
 
-type Req = { id: string; org_name: string; lab_name: string; kind: string; parent_org: string; head_name: string; email: string; login: string; status: string; created_at: string };
+type Req = { id: string; org_name: string; lab_name: string; accreditation_number: string; kind: string; parent_org: string; head_name: string; email: string; login: string; status: string; created_at: string };
 type Post = { id: string; title: string; summary: string; url: string; source: string; published_at: string };
 const input = "h-8 w-full rounded-sm border bg-background px-2 text-xs outline-none focus:ring-2 focus:ring-ring";
 
@@ -82,7 +82,7 @@ function AdminPage() {
             {reqs.map((r) => (
               <tr key={r.id} className="border-t">
                 <td className="px-3 py-2 tabular-nums">{new Date(r.created_at).toLocaleDateString("ru-RU")}</td>
-                <td className="px-3 py-2"><div className="font-medium">{r.org_name}</div><div className="text-muted-foreground">{r.lab_name}</div></td>
+                <td className="px-3 py-2"><div className="font-medium">{r.org_name}</div><div className="text-muted-foreground">{r.lab_name}</div><div className="font-mono text-[10px] text-muted-foreground">Аттестат: {r.accreditation_number || "Не указан"}</div></td>
                 <td className="px-3 py-2">{r.kind === "independent" ? "Независимая" : `В составе: ${r.parent_org}`}</td>
                 <td className="px-3 py-2">{r.head_name}<div className="font-mono text-muted-foreground">{r.login}</div></td>
                 <td className="px-3 py-2">{r.email}</td>

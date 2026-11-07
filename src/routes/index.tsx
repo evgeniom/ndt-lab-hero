@@ -127,7 +127,7 @@ function Landing() {
 function RegisterDialog({ onClose }: { onClose: () => void }) {
   const { t } = useLang();
   const register = useServerFn(registerLab);
-  const [f, setF] = useState({ orgName: "", labName: "", kind: "independent" as "independent" | "subordinate", parentOrg: "", headName: "", email: "", login: "", password: "" });
+  const [f, setF] = useState({ orgName: "", labName: "", accreditationNumber: "", kind: "independent" as "independent" | "subordinate", parentOrg: "", headName: "", email: "", login: "", password: "" });
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const set = (k: keyof typeof f, v: string) => setF((p) => ({ ...p, [k]: v }));
@@ -150,6 +150,7 @@ function RegisterDialog({ onClose }: { onClose: () => void }) {
           <div className="space-y-3 text-sm">
             <label className="block"><span className="mb-1 block font-medium">{t.org}</span><input required minLength={2} maxLength={160} className={field} value={f.orgName} onChange={(e) => set("orgName", e.target.value)} /></label>
             <label className="block"><span className="mb-1 block font-medium">{t.lab}</span><input required minLength={2} maxLength={160} className={field} value={f.labName} onChange={(e) => set("labName", e.target.value)} /></label>
+            <label className="block"><span className="mb-1 block font-medium">{t.accreditation}</span><input required maxLength={160} className={field} value={f.accreditationNumber} onChange={(e) => set("accreditationNumber", e.target.value)} /></label>
             <fieldset><legend className="mb-1 font-medium">{t.status}</legend>
               <div className="flex gap-4">
                 {(["independent", "subordinate"] as const).map((k) => <label key={k} className="flex items-center gap-2"><input type="radio" checked={f.kind === k} onChange={() => set("kind", k)} />{t[k]}</label>)}

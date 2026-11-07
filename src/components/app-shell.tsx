@@ -30,8 +30,10 @@ export function AppShell({
   searchPlaceholder?: string;
   children: ReactNode;
 }) {
-  const { people, user, signOut, can } = useAccess();
+  const { people, user, signOut, can, labName, accreditationNumber, isDemo } = useAccess();
   const settings = useSettings();
+  const displayLabName = labName || (isDemo ? settings.labName : "Лаборатория");
+  const displayAccreditation = accreditationNumber || (isDemo ? settings.accreditation : "Не указан");
   const [portalAdmin, setPortalAdmin] = useState(false);
   useEffect(() => { void supabase.rpc("is_portal_admin", { _user_id: user.id }).then(({ data }) => setPortalAdmin(!!data)); }, [user.id]);
   const items = nav.filter((n) => (n.to !== "/settings" || can("roles.manage")) && (n.to !== "/admin" || portalAdmin));
@@ -47,9 +49,9 @@ export function AppShell({
   return (
     <div className="flex h-screen min-w-[1120px] overflow-hidden bg-background text-foreground">
       <aside className={`${collapsed ? "w-[68px]" : "w-[244px]"} flex shrink-0 flex-col border-r border-sidebar-border bg-sidebar transition-[width] duration-200`}>
-        <div className="flex h-16 items-center gap-3 border-b border-sidebar-border px-4">
-          <div className="grid size-9 shrink-0 place-items-center rounded-sm bg-primary text-primary-foreground"><FlaskConical className="size-5" /></div>
-          {!collapsed && <div><div className="text-sm font-bold tracking-wide">NDT CONTROL</div><div className="text-[10px] text-muted-foreground">{settings.labName.toUpperCase()} · {settings.labCode}</div></div>}
+        <div className="shrink-0 border-b border-sidebar-border px-4 py-4">
+          <div className="flex items-center gap-3"><div className="grid size-9 shrink-0 place-items-center rounded-sm bg-primary text-primary-foreground"><FlaskConical className="size-5" /></div>{!collapsed && <div className="text-sm font-bold tracking-wide">NDT CONTROL</div>}</div>
+          {!collapsed && <div className="mt-3 space-y-1"><div className="break-words text-xs font-semibold [overflow-wrap:anywhere]">{displayLabName}</div><div className="break-words text-[10px] text-muted-foreground [overflow-wrap:anywhere]">Аттестат аккредитации: <span className="font-mono">{displayAccreditation}</span></div></div>}
         </div>
         <nav className="flex-1 space-y-1 p-2">
           <div className={`${collapsed ? "hidden" : "block"} px-2 pb-2 pt-3 text-[10px] font-semibold uppercase text-muted-foreground`}>Рабочее пространство</div>
@@ -76,7 +78,7 @@ export function AppShell({
 
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex h-16 shrink-0 items-center gap-4 border-b bg-card px-5">
-          <div className="text-xs text-muted-foreground">{settings.labName} <span className="px-1">/</span> <strong className="text-foreground">{breadcrumb}</strong></div>
+          <div className="min-w-0 text-xs text-muted-foreground">{displayLabName} <span className="px-1">/</span> <strong className="text-foreground">{breadcrumb}</strong></div>
           <div className="relative ml-auto w-[320px]"><Search className="absolute left-3 top-2.5 size-4 text-muted-foreground" /><input className="h-9 w-full rounded-sm border bg-background pl-9 pr-3 text-xs outline-none focus:ring-2 focus:ring-ring" placeholder={searchPlaceholder} /></div>
           <div className="flex items-center rounded-sm border bg-background p-0.5"><Button variant={!dark ? "secondary" : "ghost"} size="icon" onClick={() => setDark(false)} className="size-7" title="Светлая тема"><Sun className="size-3.5" /></Button><Button variant={dark ? "secondary" : "ghost"} size="icon" onClick={() => setDark(true)} className="size-7" title="Тёмная тема"><Moon className="size-3.5" /></Button></div>
           <Button variant="ghost" size="icon" className="relative size-9"><Bell className="size-4" /><span className="absolute right-1.5 top-1.5 size-1.5 rounded-full bg-destructive" /></Button>

@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { approvedLabRecord, registrationSchema } from "@/lib/portal-registration";
 
 const DOMAIN = "ndt-lab.local";
 export const DEMO_LOGIN = "demo";
@@ -62,23 +63,14 @@ export const getNews = createServerFn({ method: "GET" }).handler(async (): Promi
 });
 
 export const registerLab = createServerFn({ method: "POST" })
-  .inputValidator((d) => z.object({
-    orgName: z.string().trim().min(2).max(160),
-    labName: z.string().trim().min(2).max(160),
-    kind: z.enum(["independent", "subordinate"]),
-    parentOrg: z.string().trim().max(160),
-    headName: z.string().trim().min(3).max(120),
-    email: z.string().trim().email().max(200),
-    login: z.string().trim().toLowerCase().regex(/^[a-z0-9._-]{3,32}$/),
-    password: z.string().min(8).max(72),
-  }).parse(d))
+  .inputValidator((d) => registrationSchema.parse(d))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: u, error } = await supabaseAdmin.auth.admin.createUser({ email: `${data.login}@${DOMAIN}`, password: data.password, email_confirm: true, user_metadata: { contact_email: data.email } });
     if (error || !u.user) return { ok: false as const, error: error?.message.includes("already") ? "login_taken" : error?.message.includes("weak") || error?.message.includes("pwned") ? "weak_password" : "failed" };
     const { error: e2 } = await supabaseAdmin.from("lab_requests").insert({
       org_name: data.orgName, lab_name: data.labName, kind: data.kind, parent_org: data.kind === "subordinate" ? data.parentOrg : "",
-      head_name: data.headName, email: data.email, login: data.login, user_id: u.user.id,
+      head_name: data.headName, email: data.email, login: data.login, user_id: u.user.id, accreditation_number: data.accreditationNumber,
     });
     if (e2) { await supabaseAdmin.auth.admin.deleteUser(u.user.id); return { ok: false as const, error: "failed" }; }
     return { ok: true as const };
@@ -109,7 +101,7 @@ export const reviewRequest = createServerFn({ method: "POST" })
     const { data: r } = await supabaseAdmin.from("lab_requests").select("*").eq("id", data.id).eq("status", "pending").maybeSingle();
     if (!r || !r.user_id) throw new Error("Request not found");
     if (data.approve) {
-      const { data: lab, error } = await supabaseAdmin.from("labs").insert({ org_name: r.org_name, lab_name: r.lab_name, kind: r.kind, parent_org: r.parent_org, head_name: r.head_name }).select("id").single();
+      const { data: lab, error } = await supabaseAdmin.from("labs").insert(approvedLabRecord(r)).select("id").single();
       if (error || !lab) throw new Error("Could not create lab");
       const initials = r.head_name.split(/\s+/).map((w: string) => w[0] ?? "").join("").slice(0, 2).toUpperCase();
       await supabaseAdmin.from("profiles").insert({ id: r.user_id, login: r.login, name: r.head_name, position: "Head of laboratory", initials, lab_id: lab.id });

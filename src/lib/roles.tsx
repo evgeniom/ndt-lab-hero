@@ -68,6 +68,8 @@ type Ctx = {
   denyMessage: (p: Perm) => string;
   labId: string | null;
   isDemo: boolean;
+  labName: string;
+  accreditationNumber: string;
 };
 
 const RolesContext = createContext<Ctx | null>(null);
@@ -77,7 +79,7 @@ export function RolesProvider({ children }: { children: ReactNode }) {
   const [people, setPeople] = useState<Person[]>([]);
   const [now, setNow] = useState(() => Date.now());
   const [entering, setEntering] = useState(false);
-  const [lab, setLab] = useState<{ id: string | null; demo: boolean } | null>(null);
+  const [lab, setLab] = useState<{ id: string | null; demo: boolean; name: string; accreditation: string } | null>(null);
   const prevUserId = useRef<string | null | undefined>(undefined);
 
   // stage transition: login -> welcome splash -> main screen
@@ -102,9 +104,9 @@ export function RolesProvider({ children }: { children: ReactNode }) {
     const mine = (profiles ?? []).find((p) => p.id === sess.session?.user.id) ?? me;
     const labId = mine?.lab_id ?? null;
     if (labId) {
-      const { data: l } = await supabase.from("labs").select("is_demo").eq("id", labId).maybeSingle();
-      setLab({ id: labId, demo: !!l?.is_demo });
-    } else setLab({ id: null, demo: false });
+      const { data: l } = await supabase.from("labs").select("is_demo,lab_name,accreditation_number").eq("id", labId).maybeSingle();
+      setLab({ id: labId, demo: !!l?.is_demo, name: l?.lab_name ?? "", accreditation: l?.accreditation_number ?? "" });
+    } else setLab({ id: null, demo: false, name: "", accreditation: "" });
     const roleOf = new Map((roles ?? []).map((r) => [r.user_id, r.role as Role]));
     const t = Date.now();
     setNow(t);
@@ -162,6 +164,8 @@ export function RolesProvider({ children }: { children: ReactNode }) {
       can: (p) => allowed.includes(p),
       labId: lab?.id ?? null,
       isDemo: lab?.demo ?? false,
+      labName: lab.name,
+      accreditationNumber: lab.accreditation,
       denyMessage: (p) => `Недостаточно прав: «${PERM_TITLE[p]}» недоступно для роли «${ROLE_TITLE[user.role]}»`,
     };
   }, [people, user, reload, signOut, now, lab]);
