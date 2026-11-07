@@ -13,6 +13,8 @@ export const Route = createFileRoute("/access")({
       { name: "description", content: "Учётные записи специалистов НК, руководителей лаборатории и аудиторов: статус входа, роли и матрица прав." },
       { property: "og:title", content: "Специалисты и права доступа — NDT Control" },
       { property: "og:description", content: "Учётные записи, статус в сети и матрица прав лаборатории неразрушающего контроля по ISO/IEC 17025." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: AccessPage,
