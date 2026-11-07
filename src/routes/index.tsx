@@ -5,6 +5,9 @@ import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { LANGS, useLang } from "@/lib/i18n";
 import { DEMO_LOGIN, DEMO_PASSWORD, getNews, registerLab, startDemo, type NewsItem } from "@/lib/portal.functions";
+import labQualityImage from "@/assets/news-lab-quality.jpg";
+import ultrasonicImage from "@/assets/news-ultrasonic-testing.jpg";
+import metrologyImage from "@/assets/news-metrology.jpg";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -21,6 +24,13 @@ export const Route = createFileRoute("/")({
 });
 
 const field = "h-10 w-full rounded-sm border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring";
+
+function newsIllustration(news: NewsItem) {
+  const topic = `${news.title} ${news.summary}`;
+  if (/ultrasonic|phased.array|\bUT\b|ультразвук|УЗК/i.test(topic)) return ultrasonicImage;
+  if (/calibrat|metrolog|equipment|поверк|калибр|метролог|прибор/i.test(topic)) return metrologyImage;
+  return labQualityImage;
+}
 
 function Landing() {
   const { lang, setLang, t } = useLang();
@@ -92,11 +102,14 @@ function Landing() {
         {news === null ? <Loader2 className="size-5 animate-spin text-muted-foreground" /> : news.length === 0 ? <p className="text-sm text-muted-foreground">{t.noNews}</p> : (
           <div className="grid gap-4 md:grid-cols-3">
             {news.map((n) => (
-              <article key={n.id} className="flex flex-col rounded-sm border bg-card p-4 shadow-panel">
+              <article key={n.id} className="flex flex-col overflow-hidden rounded-sm border bg-card shadow-panel">
+                <img src={newsIllustration(n)} alt="" loading="lazy" decoding="async" width={1200} height={768} className="aspect-[25/16] w-full border-b object-cover" />
+                <div className="flex flex-1 flex-col p-4">
                 <div className="mb-2 flex items-center justify-between text-[11px] text-muted-foreground"><span className="font-semibold uppercase text-primary">{n.source}</span><span>{new Date(n.date).toLocaleDateString(lang)}</span></div>
                 <h3 className="font-semibold leading-snug">{n.title}</h3>
                 <p className="mt-2 flex-1 text-sm text-muted-foreground">{n.summary}</p>
                 {n.url && <a href={n.url} target="_blank" rel="noopener noreferrer" className="mt-3 text-sm font-medium text-primary hover:underline">{t.readMore} →</a>}
+                </div>
               </article>
             ))}
           </div>
