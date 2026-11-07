@@ -8,6 +8,7 @@ import { DEMO_LOGIN, DEMO_PASSWORD, getNews, registerLab, startDemo, type NewsIt
 import labQualityImage from "@/assets/news-lab-quality.jpg";
 import ultrasonicImage from "@/assets/news-ultrasonic-testing.jpg";
 import metrologyImage from "@/assets/news-metrology.jpg";
+import personnelImage from "@/assets/news-personnel-certification.jpg";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -27,6 +28,7 @@ const field = "h-10 w-full rounded-sm border bg-background px-3 text-sm outline-
 
 function newsIllustration(news: NewsItem) {
   const topic = `${news.title} ${news.summary}`;
+  if (/personnel|9712|certification|персонал|аттестац/i.test(topic)) return personnelImage;
   if (/ultrasonic|phased.array|\bUT\b|ультразвук|УЗК/i.test(topic)) return ultrasonicImage;
   if (/calibrat|metrolog|equipment|поверк|калибр|метролог|прибор/i.test(topic)) return metrologyImage;
   return labQualityImage;
