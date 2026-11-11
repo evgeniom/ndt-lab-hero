@@ -8,58 +8,11 @@ export const DEMO_LOGIN = "demo";
 export const DEMO_PASSWORD = "Demo-NDT-Portal-2026!";
 const DEMO_LAB = "00000000-0000-0000-0000-000000000017";
 
-export type NewsItem = { id: string; title: string; summary: string; url: string; source: string; date: string };
+export type { NewsItem } from "./portal-news";
 
-let feedCache: { at: number; items: NewsItem[] } | null = null;
-const FEEDS = [
-  { url: "https://www.iso.org/contents/data/rss/news.xml", source: "ISO" },
-  { url: "https://www.ndt.net/rss/news.xml", source: "NDT.net" },
-];
-
-function tag(xml: string, t: string) {
-  const m = xml.match(new RegExp(`<${t}[^>]*>([\\s\\S]*?)</${t}>`, "i"));
-  return (m?.[1] ?? "").replace(/<!\[CDATA\[|\]\]>/g, "").replace(/<[^>]+>/g, "").trim();
-}
-
-async function readFeeds(): Promise<NewsItem[]> {
-  if (feedCache && Date.now() - feedCache.at < 3 * 3600_000) return feedCache.items;
-  const out: NewsItem[] = [];
-  await Promise.all(FEEDS.map(async (f) => {
-    try {
-      const r = await fetch(f.url, { signal: AbortSignal.timeout(4000), headers: { "user-agent": "NDT-Portal/1.0" } });
-      if (!r.ok) return;
-      const xml = await r.text();
-      if (!xml.includes("<item")) return;
-      for (const it of xml.split(/<item[\s>]/i).slice(1, 9)) {
-        const title = tag(it, "title");
-        if (!title) continue;
-        const d = new Date(tag(it, "pubDate") || Date.now());
-        out.push({ id: `${f.source}-${title}`, title, summary: tag(it, "description").slice(0, 240), url: tag(it, "link"), source: f.source, date: isNaN(+d) ? new Date().toISOString() : d.toISOString() });
-      }
-    } catch { /* source unavailable */ }
-  }));
-  feedCache = { at: Date.now(), items: out };
-  return out;
-}
-
-export const getNews = createServerFn({ method: "GET" }).handler(async (): Promise<NewsItem[]> => {
-  const { createClient } = await import("@supabase/supabase-js");
-  const key = process.env["SUPABASE_PUBLISHABLE_KEY"]!;
-  const sb = createClient(process.env["SUPABASE_URL"]!, key, {
-    auth: { persistSession: false, autoRefreshToken: false },
-    global: { fetch: (input, init) => {
-      const h = new Headers(init?.headers);
-      if (key.startsWith("sb_") && h.get("Authorization") === `Bearer ${key}`) h.delete("Authorization");
-      h.set("apikey", key);
-      return fetch(input, { ...init, headers: h });
-    } },
-  });
-  const [{ data }, feed] = await Promise.all([
-    sb.from("news_posts").select("id,title,summary,url,source,published_at").order("published_at", { ascending: false }).limit(20),
-    readFeeds(),
-  ]);
-  const manual = (data ?? []).map((n) => ({ id: n.id, title: n.title, summary: n.summary, url: n.url, source: n.source, date: n.published_at }));
-  return [...manual, ...feed].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 12);
+export const getNews = createServerFn({ method: "GET" }).handler(async () => {
+  const { readAutomaticNews } = await import("./portal-news.server");
+  return readAutomaticNews();
 });
 
 export const registerLab = createServerFn({ method: "POST" })
