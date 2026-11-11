@@ -1,4 +1,5 @@
 # Roadmap
+- [ ] Automatic ISO and NDT.net news on the portal (replace manual feed)
 - [x] Accreditation number in registration and lab identity under the workspace logo
 - [x] Phase 1: public landing (news, language switcher, sign in, demo)
 - [x] Phase 2: lab registration with portal-admin approval
