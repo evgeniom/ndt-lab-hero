@@ -4,6 +4,7 @@ const links = (text: string) => [...text.matchAll(/(?<!!)\[([^\[\]\n]+)\]\((http
 
 export function ndtIssueUrl(markdown: string): string {
   for (const match of links(markdown)) {
+    if (!match[1] || !match[2]) continue;
     const url = new URL(match[2]);
     if (url.hostname === "www.ndt.net" && match[1].replace(/\*/g, "").trim() === "News" && url.searchParams.get("DocGroup") === "2") return url.href;
   }
@@ -13,6 +14,7 @@ export function ndtIssueUrl(markdown: string): string {
 export function parseNews(markdown: string, source: "ISO" | "NDT.net"): NewsItem[] {
   const out = new Map<string, NewsItem>();
   for (const match of links(markdown)) {
+    if (!match[1] || !match[2]) continue;
     const url = new URL(match[2]);
     const valid = source === "ISO"
       ? url.hostname === "www.iso.org" && /^\/news\/\d{4}\/\d{2}\//.test(url.pathname)
