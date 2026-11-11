@@ -43,7 +43,13 @@ function Landing() {
   const demo = useServerFn(startDemo);
   const loadNews = useServerFn(getNews);
 
-  useEffect(() => { void loadNews().then(setNews).catch(() => setNews([])); }, [loadNews]);
+  useEffect(() => {
+    let active = true;
+    const refresh = () => { void loadNews().then(items => { if (active) setNews(items); }).catch(() => { if (active) setNews(current => current ?? []); }); };
+    refresh();
+    const timer = setInterval(refresh, 3 * 3600_000);
+    return () => { active = false; clearInterval(timer); };
+  }, [loadNews]);
 
   const tryDemo = async () => {
     setDemoBusy(true);
@@ -107,9 +113,9 @@ function Landing() {
               <article key={n.id} className="flex flex-col overflow-hidden rounded-sm border bg-card shadow-panel">
                 <img src={newsIllustration(n)} alt="" loading="lazy" decoding="async" width={1200} height={768} className="aspect-[25/16] w-full border-b object-cover" />
                 <div className="flex flex-1 flex-col p-4">
-                <div className="mb-2 flex items-center justify-between text-[11px] text-muted-foreground"><span className="font-semibold uppercase text-primary">{n.source}</span><span>{new Date(n.date).toLocaleDateString(lang)}</span></div>
+                <div className="mb-2 flex items-center justify-between text-[11px] text-muted-foreground"><span className="font-semibold uppercase text-primary">{n.source}</span>{n.date && <span>{new Date(n.date).toLocaleDateString(lang)}</span>}</div>
                 <h3 className="font-semibold leading-snug">{n.title}</h3>
-                <p className="mt-2 flex-1 text-sm text-muted-foreground">{n.summary}</p>
+                {n.summary && <p className="mt-2 flex-1 text-sm text-muted-foreground">{n.summary}</p>}
                 {n.url && <a href={n.url} target="_blank" rel="noopener noreferrer" className="mt-3 text-sm font-medium text-primary hover:underline">{t.readMore} →</a>}
                 </div>
               </article>

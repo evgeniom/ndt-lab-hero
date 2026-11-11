@@ -16,3 +16,4 @@
 - Registration validation and approval mapping live in portal-registration; workspace lab identity comes from the member's labs row through RolesProvider, not shared settings. Why: registered identity must follow each lab without leaking demo defaults.
 - Demo lab has fixed id 00000000-0000-0000-0000-000000000017; read-only demo user (auditor) is created on demand by startDemo.
 - Lab working data (equipment, tests, quality/CAPA, tasks) lives in lab_data (lab_id, kind, jsonb items) via useLabData in src/lib/lab-data.ts; demo lab falls back to code samples, real labs start empty. Why: per-lab isolation by RLS on user_lab_id().
+- Portal news is fetched server-side through the linked Firecrawl gateway from ISO and NDT.net, with per-source three-hour caching and no manual-post fallback; why: direct feeds are blocked and the public feed must reflect actual source publications.
